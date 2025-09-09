@@ -48,7 +48,7 @@ This tool can parse, modify, and regenerate the correct hash automatically, so t
 
 ---
 
-## ⚖️ Disclaimer 📜
+## ⚖️ Disclaimer
 
 This project is a **fan-made tool** and is not affiliated with or endorsed by **Newgrounds** or **MaskedVillain** (the original creator of *Murloc 2 Game*).  
 It is intended for educational purposes and for preserving/modding classic Flash games.  
