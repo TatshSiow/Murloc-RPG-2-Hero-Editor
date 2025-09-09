@@ -1,5 +1,8 @@
 # ⚔️ Murloc 2 Hero Editor
 
+<img width="320" height="150" alt="image" src="https://lh6.googleusercontent.com/proxy/UuGrjADSn7O4A1Ud-solD4tMTjldRb3NsRvsmx1lD3xIPYSdzo0f3-GunjOM4ks-X8k3h1GioEZMA4fyE4jtoXxiMQtYJwpsTFN4G_vSrwOLG_YS_jGhMSoC9aItf4Y7V1ne" />
+
+
 A save file editor for the classic SWF Flash RPG **Murloc 2: Episode 1**.
 
 Inspired by tools like the Diablo II Hero Editor
@@ -15,7 +18,7 @@ Inspired by tools like the Diablo II Hero Editor
 
 This project allows you to directly modifying the hash-encrypted game’s save file.  
 Since **Murloc 2** stores player data in local save files with a checksum/hash to prevent tampering.  
-This tool can parse, modify, and regenerate the correct hash automatically, so the game will accept your edited save.
+This tool can edit game saves and regenerate the correct hash automatically, so the game will accept your edited save.
 
 ---
 
@@ -44,7 +47,13 @@ This tool can parse, modify, and regenerate the correct hash automatically, so t
 5. 💾 Export or replace your original save file with the edited version.  
 6. 🕹️ Load your save file and enjoy!  
 
+## 📷 Screenshots (WIP) 🖼️
 
+<p align="center">
+  <img src="screenshots/equipment.png" alt="Equipment UI" width="300"/>
+  <img src="screenshots/inventory.png" alt="Inventory UI" width="300"/>
+  <img src="screenshots/codex.png" alt="Item Codex UI" width="300"/>
+</p>
 
 ---
 
