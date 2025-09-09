@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Murloc RPG 2 Save Scrivener</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+    <style>
+        body {
+            background-color: #1a0f0a;
+            font-family: 'Arial Narrow', Arial, sans-serif;
+        }
+        .success-msg {
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+        .success-msg.show {
+            opacity: 1;
+        }
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+        input[type=number] {
+          -moz-appearance: textfield;
+        }
+        #tooltip {
+            z-index: 100;
+            pointer-events: none;
+        }
+        .quality-common { color: #ffffff; }
+        .quality-uncommon { color: #1eff00; }
+        .quality-rare { color: #0070dd; }
+        .quality-epic { color: #a335ee; }
+        .quality-legendary { color: #ff8000; }
+        /* Style the select box text color based on selected quality */
+        select#filterQuality.quality-common { color: #ffffff; }
+        select#filterQuality.quality-uncommon { color: #1eff00; }
+        select#filterQuality.quality-rare { color: #0070dd; }
+        select#filterQuality.quality-epic { color: #a335ee; }
+        select#filterQuality.quality-legendary { color: #ff8000; }
+        .coin {
+            width: 1.25em;
+            height: 1.25em;
+            vertical-align: middle;
+            margin-left: 2px;
+            flex-shrink: 0;
+        }
+        #itemList::-webkit-scrollbar {
+            width: 8px;
+        }
+        #itemList::-webkit-scrollbar-track {
+            background: rgba(10,5,2,0.8);
+            border-radius: 10px;
+        }
+        #itemList::-webkit-scrollbar-thumb {
+            background: #4d2c1a;
+            border-radius: 10px;
+        }
+        #itemList::-webkit-scrollbar-thumb:hover {
+            background: #ffa500;
+        }
+        .icon-container.active-slot {
+            outline: 2px solid #ffD100;
+            box-shadow: 0 0 8px rgba(255, 209, 0, 0.7);
+        }
+        .clear-slot-btn {
+            position: absolute;
+            top: -0.5rem;
+            right: -0.5rem;
+            width: 1.25rem;
+            height: 1.25rem;
+            border-radius: 9999px;
+            background-color: #500;
+            color: #ffd100;
+            border: 1px solid #989898;
+            font-size: 0.75rem;
+            line-height: 1;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+            cursor: pointer;
+            z-index: 10;
+        }
+        .item-slot-container:hover .clear-slot-btn {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="text-amber-50 antialiased tracking-wide">
+    <div class="container mx-auto mt-10 max-w-7xl p-6 md:p-8 bg-stone-900/90 rounded-lg border-2 border-[#4d2c1a] shadow-[0_0_8px_rgba(255,170,0,0.3)]">
+        
+        <h1 class="text-4xl text-center font-bold text-amber-400 mb-2">Murloc RPG 2 Save Scrivener</h1>
+        <p class="text-center text-stone-300 mb-6 text-lg">Present your save scroll or inscribe its contents below.</p>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+
+            <!-- Left Column: Main Editor -->
+            <div class="lg:col-span-3">
+                <div class="space-y-6">
+                    <div>
+                        <label for="fileInput" class="block text-xl text-amber-200 mb-2">1. Present Save Scroll (.sav):</label>
+                        <input type="file" id="fileInput" accept=".sav" class="block w-full text-stone-300 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:font-semibold file:bg-stone-600 file:text-amber-200 hover:file:bg-stone-500 cursor-pointer">
+                    </div>
+
+                    <div>
+                        <label for="inputJson" class="block text-xl text-amber-200 mb-2">2. Or Inscribe Save Data:</label>
+                        <textarea id="inputJson" placeholder="The chronicle of your journey will appear here..." class="w-full h-48 p-3 bg-stone-900/70 border border-stone-600 rounded-md text-stone-200 font-mono text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none"></textarea>
+                    </div>
+                    
+                    <div id="statEditor" class="hidden space-y-6">
+                        <!-- Player Info Section -->
+                        <h2 class="text-2xl text-center font-bold text-amber-400 mt-4 mb-2">Player Info</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-[rgba(30,20,10,0.7)] border border-[#4d2c1a] rounded-md p-4">
+                                <label class="text-amber-200 font-semibold block mb-2">Class</label>
+                                <input type="text" id="playerClass" readonly class="w-full p-2 bg-[rgba(10,5,2,0.8)] border border-stone-700 text-stone-300 rounded cursor-not-allowed">
+                            </div>
+                            <div class="bg-[rgba(30,20,10,0.7)] border border-[#4d2c1a] rounded-md p-4">
+                                <label class="text-amber-200 font-semibold block mb-2">Current Zone</label>
+                                <input type="text" id="currentZone" readonly class="w-full p-2 bg-[rgba(10,5,2,0.8)] border border-stone-700 text-stone-300 rounded cursor-not-allowed">
+                            </div>
+                            <div class="bg-[rgba(30,20,10,0.7)] border border-[#4d2c1a] rounded-md p-4 md:col-span-2">
+                                <label class="text-amber-200 font-semibold block mb-2">Money</label>
+                                <div class="grid grid-cols-3 gap-x-4">
+                                    <div class="flex items-center">
+                                        <input type="number" id="playerMoneyGold" min="0" class="w-full p-2 bg-[rgba(25,15,5,0.7)] border border-[#4d2c1a] text-[#ffd100] rounded focus:outline-none focus:border-[#ffa500]" placeholder="Gold">
+                                        <img src="https://wow.zamimg.com/images/icons/money-gold.gif" class="coin ml-2" alt="Gold">
+                                    </div>
+                                    <div class="flex items-center">
+                                        <input type="number" id="playerMoneySilver" min="0" max="99" class="w-full p-2 bg-[rgba(25,15,5,0.7)] border border-[#4d2c1a] text-[#ffd100] rounded focus:outline-none focus:border-[#ffa500]" placeholder="Silver">
+                                        <img src="https://wow.zamimg.com/images/icons/money-silver.gif" class="coin ml-2" alt="Silver">
+                                    </div>
+                                    <div class="flex items-center">
+                                        <input type="number" id="playerMoneyCopper" min="0" max="99" class="w-full p-2 bg-[rgba(25,15,5,0.7)] border border-[#4d2c1a] text-[#ffd100] rounded focus:outline-none focus:border-[#ffa500]" placeholder="Copper">
+                                        <img src="https://wow.zamimg.com/images/icons/money-copper.gif" class="coin ml-2" alt="Copper">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-[rgba(30,20,10,0.7)] border border-[#4d2c1a] rounded-md p-4">
+                                <label for="playTime" class="text-amber-200 font-semibold block mb-2">Play Time (seconds)</label>
+                                <input type="number" id="playTime" min="0" class="w-full p-2 bg-[rgba(25,15,5,0.7)] border border-[#4d2c1a] text-[#ffd100] rounded focus:outline-none focus:border-[#ffa500] focus:shadow-[0_0_6px_rgba(255,165,0,0.5)]" placeholder="Enter play time in seconds">
+                            </div>
+                            <div class="bg-[rgba(30,20,10,0.7)] border border-[#4d2c1a] rounded-md p-4">
+                                <label for="playerLevel" class="text-amber-200 font-semibold block mb-2">Level</label>
+                                <input type="number" id="playerLevel" min="1" max="40" class="w-full p-2 bg-[rgba(25,15,5,0.7)] border border-[#4d2c1a] text-[#ffd100] rounded focus:outline-none focus:border-[#ffa500] focus:shadow-[0_0_6px_rgba(255,165,0,0.5)]" placeholder="Enter level">
+                            </div>
+                            <div class="bg-[rgba(30,20,10,0.7)] border border-[#4d2c1a] rounded-md p-4">
+                                <label for="playerXP" class="text-amber-200 font-semibold block mb-2">Experience Points</label>
+                                <input type="number" id="playerXP" min="0" max="22400" class="w-full p-2 bg-[rgba(25,15,5,0.7)] border border-[#4d2c1a] text-[#ffd100] rounded focus:outline-none focus:border-[#ffa500] focus:shadow-[0_0_6px_rgba(255,165,0,0.5)]" placeholder="Enter XP amount">
+                            </div>
+                             <div class="bg-[rgba(30,20,10,0.7)] border border-[#4d2c1a] rounded-md p-4">
+                                <label for="unlockedChests" class="text-amber-200 font-semibold block mb-2">Unlocked Chests</label>
+                                <input type="number" id="unlockedChests" min="0" class="w-full p-2 bg-[rgba(25,15,5,0.7)] border border-[#4d2c1a] text-[#ffd100] rounded focus:outline-none focus:border-[#ffa500] focus:shadow-[0_0_6px_rgba(255,165,0,0.5)]" placeholder="Enter chest value">
+                            </div>
+                        </div>
+
+                        <!-- Abilities & Quests Section -->
+                        <div id="abilitiesQuestsSection" class="space-y-4 pt-4">
+                            <h3 class="text-xl text-center font-bold text-amber-300 mb-2">Abilities & Quests</h3>
+                            <div class="bg-[rgba(30,20,10,0.7)] border border-[#4d2c1a] rounded-md p-4">
+                                <label for="playerAbilities" class="text-amber-200 font-semibold block mb-2">Player Abilities (one per line)</label>
+                                <textarea id="playerAbilities" placeholder="ab_fireball&#x0a;ab_frostbolt" class="w-full h-24 p-2 bg-[rgba(25,15,5,0.7)] border border-[#4d2c1a] text-[#ffd100] rounded focus:outline-none focus:border-[#ffa500] focus:shadow-[0_0_6px_rgba(255,165,0,0.5)] font-mono text-sm"></textarea>
+                            </div>
+                            <div class="bg-[rgba(30,20,10,0.7)] border border-[#4d2c1a] rounded-md p-4">
+                                <label for="activeQuests" class="text-amber-200 font-semibold block mb-2">Active Quests (one per line)</label>
+                                <textarea id="activeQuests" placeholder="quest_crystal_pylons" class="w-full h-24 p-2 bg-[rgba(25,15,5,0.7)] border border-[#4d2c1a] text-[#ffd100] rounded focus:outline-none focus:border-[#ffa500] focus:shadow-[0_0_6px_rgba(255,165,0,0.5)] font-mono text-sm"></textarea>
+                            </div>
+                            <div class="bg-[rgba(30,20,10,0.7)] border border-[#4d2c1a] rounded-md p-4">
+                                <label for="completedQuests" class="text-amber-200 font-semibold block mb-2">Completed Quests (one per line)</label>
+                                <textarea id="completedQuests" placeholder="quest_001&#x0a;quest_gizbo_armor&#x0a;quest_best_defense2" class="w-full h-24 p-2 bg-[rgba(25,15,5,0.7)] border border-[#4d2c1a] text-[#ffd100] rounded focus:outline-none focus:border-[#ffa500] focus:shadow-[0_0_6px_rgba(255,165,0,0.5)] font-mono text-sm"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Equipment Section -->
+                        <div id="equipmentSection" class="space-y-6 pt-4">
+                            <h3 class="text-xl text-center font-bold text-amber-300 mb-2">Equipment</h3>
+                            <div class="bg-yellow-900/30 border border-yellow-700 text-yellow-200 px-4 py-3 rounded-md text-sm">
+                                <strong>Warning:</strong> Modifying equipment with items your class cannot use, or placing items in the wrong slot type, may cause unexpected issues or crashes in the game. Proceed with caution.
+                            </div>
+                            <div id="equipmentSlots" class="grid grid-cols-3 gap-x-8">
+                                <!-- Equipment slots will be populated by JS into 3 columns here -->
+                            </div>
+                        </div>
+
+                        <!-- Bags Section -->
+                        <div id="bagsSection" class="space-y-6 pt-4">
+                            <h3 class="text-xl text-center font-bold text-amber-300 mb-2">Inventory</h3>
+                            <div id="bag1-container" class="bg-[rgba(30,20,10,0.7)] border border-[#4d2c1a] rounded-md p-4">
+                                <label class="bag-label text-amber-200 font-semibold block mb-3">Bag 1: Backpack (16 Slots)</label>
+                                <div id="bag1-slots" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-3"></div>
+                            </div>
+                            <div id="bag2-container" class="bg-[rgba(30,20,10,0.7)] border border-[#4d2c1a] rounded-md p-4">
+                                <div class="flex items-center mb-3 space-x-3">
+                                    <label class="bag-label text-amber-200 font-semibold">Bag 2:</label>
+                                    <div id="bag2-type-slot" class="item-slot-container relative grid grid-cols-[auto_1fr] items-center gap-x-3 bg-black/20 border border-stone-700 rounded p-1.5 flex-grow">
+                                        <div class="icon-container w-10 h-10 bg-black/30 border-2 border-stone-600 rounded flex items-center justify-center cursor-pointer"></div>
+                                        <div class="info-container flex flex-col justify-center overflow-hidden">
+                                            <div class="item-name-display text-sm truncate"></div>
+                                            <input type="text" class="item-id-input text-xs font-mono text-stone-400 bg-transparent border-none p-0 h-5 focus:ring-1 focus:ring-amber-500 focus:bg-stone-800 rounded" placeholder="item_id...">
+                                        </div>
+                                        <button class="clear-slot-btn" title="Clear Slot">x</button>
+                                    </div>
+                                </div>
+                                <div id="bag2-slots" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-3"></div>
+                            </div>
+                            <div id="bag3-container" class="bg-[rgba(30,20,10,0.7)] border border-[#4d2c1a] rounded-md p-4">
+                                <div class="flex items-center mb-3 space-x-3">
+                                    <label class="bag-label text-amber-200 font-semibold">Bag 3:</label>
+                                     <div id="bag3-type-slot" class="item-slot-container relative grid grid-cols-[auto_1fr] items-center gap-x-3 bg-black/20 border border-stone-700 rounded p-1.5 flex-grow">
+                                        <div class="icon-container w-10 h-10 bg-black/30 border-2 border-stone-600 rounded flex items-center justify-center cursor-pointer"></div>
+                                        <div class="info-container flex flex-col justify-center overflow-hidden">
+                                            <div class="item-name-display text-sm truncate"></div>
+                                            <input type="text" class="item-id-input text-xs font-mono text-stone-400 bg-transparent border-none p-0 h-5 focus:ring-1 focus:ring-amber-500 focus:bg-stone-800 rounded" placeholder="item_id...">
+                                        </div>
+                                        <button class="clear-slot-btn" title="Clear Slot">x</button>
+                                    </div>
+                                </div>
+                                <div id="bag3-slots" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-3"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="calculateButton" class="w-full py-3 text-3xl font-bold bg-[#300] hover:bg-[#500] active:bg-[#200] border-2 border-[#989898] border-r-[#595959] border-b-[#595959] rounded-md text-[#FFD100] shadow-sm transition-colors duration-150">Re-forge Seal</button>
+
+                    <p id="error" class="text-red-400 font-bold text-center text-lg"></p>
+
+                    <div>
+                        <label for="outputJson" class="block text-xl text-amber-200 mb-2">Resealed Save Data:</label>
+                        <textarea id="outputJson" readonly placeholder="Your newly forged chronicle will be revealed here..." class="w-full h-48 p-3 bg-stone-900/70 border border-stone-600 rounded-md text-stone-200 font-mono text-sm"></textarea>
+                    </div>
+                    
+                    <div id="exportSection" class="hidden mt-6 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <label for="saveFileName" class="block text-xl text-amber-200 mb-2">Export File Name:</label>
+                                <div class="flex items-center">
+                                    <input type="text" id="saveFileName" value="murloc_save" class="p-2 bg-stone-900/70 border border-stone-600 rounded-md text-stone-200 font-mono text-sm">
+                                    <span class="ml-2 text-stone-400 font-mono">.sav</span>
+                                </div>
+                            </div>
+                            <button id="exportButton" class="px-6 py-3 text-xl font-bold bg-[#006600] hover:bg-[#008800] active:bg-[#004400] border-2 border-[#989898] border-r-[#595959] border-b-[#595959] rounded-md text-[#FFD100] shadow-sm transition-colors duration-150">Capture Scroll</button>
+                        </div>
+                        <p id="successMsg" class="success-msg text-green-400 text-center font-bold">Scroll successfully captured!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Item Dictionary -->
+            <div class="lg:col-span-1">
+                <div class="sticky top-6">
+                    <h2 class="text-xl text-amber-300 font-bold mb-3">Item Codex</h2>
+                    
+                    <div id="codexFilters" class="grid grid-cols-2 gap-2 mb-3">
+                        <select id="filterQuality" class="filter-select w-full p-1.5 bg-stone-900/70 border border-stone-600 rounded-md text-stone-300 text-sm focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none">
+                            <option value="all">All Qualities</option>
+                        </select>
+                        <select id="filterType" class="filter-select w-full p-1.5 bg-stone-900/70 border border-stone-600 rounded-md text-stone-300 text-sm focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none">
+                            <option value="all">All Types</option>
+                        </select>
+                        <select id="filterLoc" class="filter-select w-full p-1.5 bg-stone-900/70 border border-stone-600 rounded-md text-stone-300 text-sm focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none">
+                            <option value="all">All Slots</option>
+                        </select>
+                        <select id="filterMat" class="filter-select w-full p-1.5 bg-stone-900/70 border border-stone-600 rounded-md text-stone-300 text-sm focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none">
+                            <option value="all">All Materials</option>
+                        </select>
+                    </div>
+
+                    <div class="relative mb-3">
+                        <input type="text" id="itemSearch" placeholder="Search for items..." class="w-full p-2 bg-stone-900/70 border border-stone-600 rounded-md text-stone-200 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none">
+                    </div>
+                    <div id="itemList" class="max-h-[65vh] overflow-y-auto bg-stone-900/70 border border-stone-600 rounded-md p-2 space-y-1">
+                        <!-- Item list will be populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tooltip" class="hidden absolute p-3 rounded-lg bg-stone-900 border-2 border-stone-600 shadow-lg max-w-sm text-sm"></div>
+    <script src="database/item.js"></script>
+    <script src="database/effect.js"></script>
+    <script>
+        // --- DATABASE & DATA TABLES ---
+
+        const emptySlotIcons = {
+            'Head': 'https://wow.zamimg.com/images/wow/icons/large/inventoryslot_head.jpg',
+            'Neck': 'https://wow.zamimg.com/images/wow/icons/large/inventoryslot_neck.jpg',
+            'Shoulders': 'https://wow.zamimg.com/images/wow/icons/large/inventoryslot_shoulder.jpg',
+            'Back': 'https://wow.zamimg.com/images/wow/icons/large/inventoryslot_chest.jpg',
+            'Chest': 'https://wow.zamimg.com/images/wow/icons/large/inventoryslot_chest.jpg',
+            'Wrist': 'https://wow.zamimg.com/images/wow/icons/large/inventoryslot_wrists.jpg',
+            'Weapon': 'https://wow.zamimg.com/images/wow/icons/large/inventoryslot_mainhand.jpg',
+            'Gloves': 'https://wow.zamimg.com/images/wow/icons/large/inventoryslot_hands.jpg',
+            'Belt': 'https://wow.zamimg.com/images/wow/icons/large/inventoryslot_waist.jpg',
+            'Legs': 'https://wow.zamimg.com/images/wow/icons/large/inventoryslot_legs.jpg',
+            'Boots': 'https://wow.zamimg.com/images/wow/icons/large/inventoryslot_feet.jpg',
+            'Ring': 'https://wow.zamimg.com/images/wow/icons/large/inventoryslot_finger.jpg',
+            'Trinket': 'https://wow.zamimg.com/images/wow/icons/large/inventoryslot_trinket.jpg',
+            'Bag': 'https://wow.zamimg.com/images/wow/icons/large/inventoryslot_bag.jpg',
+            'Inventory': 'https://wow.zamimg.com/images/wow/icons/large/inventoryslot_empty.jpg'
+        };
+
+        const equipmentSlotMap = [
+            'Weapon', 'Head', 'Neck', 'Shoulders', 'Back', 'Chest', 
+            'Wrist', 'Gloves', 'Belt', 'Legs', 'Boots', 'Ring', 'Trinket'
+        ];
+
+        let itemDB = {};
+        try {
+            if (itemDBJSON && itemDBJSON.trim() !== '') {
+                itemDB = JSON.parse(itemDBJSON);
+            }
+        } catch (e) {
+            if(itemDBJSON.trim() !== ''){
+                alert("The embedded item database is corrupted. Please check for syntax errors.");
+                console.error("Error parsing embedded JSON:", e);
+            }
+        }
+        
+        let effectDB = {};
+        try {
+            if (effectDBJSON && effectDBJSON.trim() !== '') {
+                effectDB = JSON.parse(effectDBJSON);
+            }
+        } catch (e) {
+            if(effectDBJSON.trim() !== ''){
+                alert("The embedded effect database is corrupted. Please check for syntax errors.");
+                console.error("Error parsing embedded effect JSON:", e);
+            }
+        }
+
+        const xpToLvl = { 1: 0, 2: 100, 3: 300, 4: 600, 5: 900, 6: 1200, 7: 1600, 8: 2000, 9: 2400, 10: 2800, 11: 3200, 12: 3700, 13: 4200, 14: 4700, 15: 5200, 16: 5700, 17: 6200, 18: 6800, 19: 7400, 20: 8000, 21: 8600, 22: 9200, 23: 9800, 24: 10400, 25: 11100, 26: 11800, 27: 12500, 28: 13200, 29: 13900, 30: 14600, 31: 15300, 32: 16000, 33: 16800, 34: 17600, 35: 18400, 36: 19200, 37: 20000, 38: 20800, 39: 21600, 40: 22400 };
+        
+        const attributeMap = { str: 'Strength', agi: 'Agility', sta: 'Stamina', int: 'Intellect' };
+
+        const filterValueSets = {
+            qualities: ['common', 'uncommon', 'rare', 'epic', 'legendary'],
+            types: new Set(),
+            locs: new Set(),
+            mats: new Set()
+        };
+
+        let activeSlotDisplay = null;
+
+        // --- CORE HELPER FUNCTIONS ---
+        function getEffect(effectId) {
+            if (!effectId) return null;
+            return effectDB[effectId.toLowerCase()] || null;
+        }
+
+        function getItem(itemId) {
+            if (!itemId) return null;
+            return itemDB[itemId.toLowerCase()] || null;
+        }
+
+        function getItemStackSize(itemId) {
+            const item = getItem(itemId);
+            return item ? item.stack || 1 : 1;
+        }
+
+        function getBagSlotCount(itemId) {
+            if (!itemId) return 0;
+            if (itemId === 'backpack') return 16;
+            const item = getItem(itemId);
+            return item && item.type === 'bag' ? item.slots : 0;
+        }
+        
+        function formatCurrency(copperValue) {
+            if (isNaN(copperValue) || copperValue <= 0) return '';
+            const gold = Math.floor(copperValue / 10000);
+            const silver = Math.floor((copperValue % 10000) / 100);
+            const copper = copperValue % 100;
+            
+            let parts = [];
+            if (gold > 0) parts.push(`<span>${gold} <img src="https://wow.zamimg.com/images/icons/money-gold.gif" class="coin inline-block"></span>`);
+            if (silver > 0) parts.push(`<span>${silver} <img src="https://wow.zamimg.com/images/icons/money-silver.gif" class="coin inline-block"></span>`);
+            if (copper > 0) parts.push(`<span>${copper} <img src="https://wow.zamimg.com/images/icons/money-copper.gif" class="coin inline-block"></span>`);
+
+            if (parts.length === 0) return '';
+            return `<div class="text-stone-300">Sell Price: ${parts.join(' ')}</div>`;
+        }
+
+        function getXpForLevel(level) {
+            return xpToLvl[Math.min(40, Math.max(1, level))] || 0;
+        }
+
+        function getLevelForXp(xp) {
+            const levels = Object.keys(xpToLvl).map(Number).sort((a, b) => a - b);
+            for (let i = levels.length - 1; i >= 0; i--) {
+                if (xp >= xpToLvl[levels[i]]) return levels[i];
+            }
+            return 1;
+        }
+
+        function toActionScriptString(value) {
+            if (typeof value === 'boolean') return String(value).toLowerCase();
+            if (Array.isArray(value)) return value.map(toActionScriptString).join(',');
+            if (value === null) return "";
+            return String(value);
+        }
+
+        function calculateHash(data) {
+            const fieldsInOrder = [ '_version', 'playTime', 'playerClass', 'playerMoney', 'playerXP', 'playerDir', 'playerCurrentHealth', 'playerCurrentPower', 'currentZone', 'currentZoneFrame', 'currentXPos', 'playerAbilities', 'playerEquipment', 'playerEffects', 'playerCooldowns', 'activeQuests', 'activeQuestKills', 'completedQuests', 'bag1', 'bag2', 'bag3', 'actionbar1', 'actionbar2', 'actionbar3', 'currentActionbar', 'vol_master', 'vol_music', 'vol_sfx', 'vol_ambience', 'loop_music', 'mute_all', 'show_fps', 'disable_combattext', 'default_autoloot', 'fx_screenshake', 'fx_environment', 'fx_battle', 'unlocked_chests', 'keyBind' ];
+            let hashString = "";
+            for (const field of fieldsInOrder) {
+                const value = data[field];
+                hashString += (field === 'activeQuestKills') ? "[object Object]" : toActionScriptString(value);
+            }
+            hashString += "1i3am3a7haXer";
+            return CryptoJS.MD5(hashString).toString();
+        }
+
+        // --- UI & DATA BINDING FUNCTIONS ---
+        
+        function getSlotTypeFromContainer(slotContainer) {
+            if (!slotContainer) return 'Inventory';
+
+            const isEquipment = !!slotContainer.closest('#equipmentSlots');
+            if (isEquipment) {
+                const label = slotContainer.previousElementSibling;
+                if (label && label.tagName === 'LABEL') {
+                    return label.textContent;
+                }
+            }
+
+            if (slotContainer.id.includes('-type-slot')) {
+                return 'Bag';
+            }
+
+            return 'Inventory';
+        }
+
+        function updateSlotDisplay(slotContainer, itemId, slotType) {
+            const item = getItem(itemId);
+            
+            const iconContainer = slotContainer.querySelector('.icon-container');
+            const nameDisplay = slotContainer.querySelector('.item-name-display');
+            const idInput = slotContainer.querySelector('.item-id-input');
+            const qtyInput = slotContainer.querySelector('.item-qty-input');
+
+            const isEquipment = !qtyInput;
+            const nameClasses = isEquipment 
+                ? 'item-name-display text-base truncate' 
+                : 'item-name-display text-sm truncate';
+
+            if (item && iconContainer && nameDisplay && idInput) {
+                const iconUrl = item.icon ? `https://wow.zamimg.com/images/wow/icons/large/${item.icon.toLowerCase()}.jpg` : '';
+                iconContainer.innerHTML = iconUrl ? `<img src="${iconUrl}" class="w-full h-full rounded" alt="${item.name}">` : '';
+                
+                nameDisplay.textContent = item.name;
+                nameDisplay.title = item.name;
+                nameDisplay.className = `${nameClasses} ${'quality-' + item.quality}`;
+                
+                idInput.value = item.id;
+                
+                if (qtyInput) {
+                    qtyInput.max = item.stack || 1;
+                    if (parseInt(qtyInput.value) === 0 || isNaN(parseInt(qtyInput.value))) {
+                        qtyInput.value = 1;
+                    }
+                }
+            } else if (iconContainer && nameDisplay && idInput) { // Empty the slot
+                const placeholderIconUrl = emptySlotIcons[slotType];
+                if (placeholderIconUrl) {
+                    iconContainer.innerHTML = `<img src="${placeholderIconUrl}" class="w-full h-full rounded opacity-60" alt="${slotType} slot">`;
+                } else {
+                    iconContainer.innerHTML = '';
+                }
+                
+                nameDisplay.textContent = 'Empty';
+                nameDisplay.title = 'Empty';
+                nameDisplay.className = `${nameClasses} quality-common`;
+
+                idInput.value = '';
+                
+                if (qtyInput) {
+                    qtyInput.value = 0;
+                    qtyInput.max = 1;
+                }
+            }
+        }
+
+        function populateEquipmentUI(equipmentData) {
+            const slotsContainer = document.getElementById('equipmentSlots');
+            slotsContainer.innerHTML = `
+                <div id="equipment-col-left" class="flex flex-col gap-4"></div>
+                <div id="equipment-col-middle" class="flex flex-col justify-end"></div>
+                <div id="equipment-col-right" class="flex flex-col gap-4"></div>
+            `;
+
+            const colLeft = document.getElementById('equipment-col-left');
+            const colMiddle = document.getElementById('equipment-col-middle');
+            const colRight = document.getElementById('equipment-col-right');
+
+            const createSlotElement = (slotName, itemId, slotIndex) => {
+                const slotWrapper = document.createElement('div');
+                slotWrapper.dataset.slotIndex = slotIndex;
+                slotWrapper.className = "bg-[rgba(30,20,10,0.7)] border border-[#4d2c1a] rounded-md p-3";
+                
+                slotWrapper.innerHTML = `
+                    <label class="text-amber-200 font-semibold block mb-2">${slotName}</label>
+                    <div class="item-slot-container relative grid grid-cols-[auto_1fr] items-center gap-x-3">
+                        <div class="icon-container w-12 h-12 bg-black/30 border-2 border-stone-600 rounded flex items-center justify-center cursor-pointer"></div>
+                        <div class="info-container flex flex-col justify-center overflow-hidden">
+                            <div class="item-name-display"></div>
+                            <input type="text" class="item-id-input text-sm font-mono text-stone-400 bg-transparent border-none p-0 h-5 focus:ring-1 focus:ring-amber-500 focus:bg-stone-800 rounded" placeholder="item_id...">
+                        </div>
+                        <button class="clear-slot-btn" title="Clear Slot">x</button>
+                    </div>
+                `;
+                
+                updateSlotDisplay(slotWrapper.querySelector('.item-slot-container'), itemId, slotName);
+                return slotWrapper;
+            };
+
+            const slotDefinitions = [
+                { name: 'Head',      index: 1,  column: colLeft },
+                { name: 'Neck',      index: 2,  column: colLeft },
+                { name: 'Shoulders', index: 3,  column: colLeft },
+                { name: 'Back',      index: 4,  column: colLeft },
+                { name: 'Chest',     index: 5,  column: colLeft },
+                { name: 'Wrist',     index: 6,  column: colLeft },
+                { name: 'Weapon',    index: 0,  column: colMiddle },
+                { name: 'Gloves',    index: 7,  column: colRight },
+                { name: 'Belt',      index: 8,  column: colRight },
+                { name: 'Legs',      index: 9,  column: colRight },
+                { name: 'Boots',     index: 10, column: colRight },
+                { name: 'Ring',      index: 11, column: colRight },
+                { name: 'Trinket',   index: 12, column: colRight }
+            ];
+
+            slotDefinitions.forEach(def => {
+                const itemId = (equipmentData && equipmentData[def.index]) ? equipmentData[def.index] : '';
+                const slotElement = createSlotElement(def.name, itemId, def.index);
+                def.column.appendChild(slotElement);
+            });
+        }
+        
+        function readEquipmentFromUI() {
+            const equipmentData = new Array(equipmentSlotMap.length).fill(null);
+            const slotWrappers = document.querySelectorAll('#equipmentSlots [data-slot-index]');
+
+            slotWrappers.forEach(wrapper => {
+                const index = parseInt(wrapper.dataset.slotIndex, 10);
+                const input = wrapper.querySelector('.item-id-input');
+                if (input && !isNaN(index) && index < equipmentData.length) {
+                    equipmentData[index] = input.value.trim() || null;
+                }
+            });
+            return equipmentData;
+        }
+
+        function createSlotHTML(slotIndex, itemData) {
+            const itemId = itemData && itemData[0] ? itemData[0] : '';
+            const quantity = itemData && itemData[1] !== undefined ? itemData[1] : 0;
+            const item = getItem(itemId);
+
+            const iconUrl = item && item.icon ? `https://wow.zamimg.com/images/wow/icons/large/${item.icon.toLowerCase()}.jpg` : '';
+            const itemName = item ? item.name : 'Empty';
+            const itemQuality = item ? item.quality : 'common';
+            const maxStack = getItemStackSize(itemId);
+
+            let iconContent = '';
+            if (iconUrl) {
+                iconContent = `<img src="${iconUrl}" class="w-full h-full rounded" alt="${itemName}">`;
+            } else {
+                iconContent = `<img src="${emptySlotIcons['Inventory']}" class="w-full h-full rounded opacity-60" alt="Empty inventory slot">`;
+            }
+
+            return `
+                <div class="item-slot-container relative grid grid-cols-[auto_1fr_auto] items-center gap-x-2 p-1.5 border border-stone-700 rounded bg-black/20">
+                    <div class="icon-container w-10 h-10 bg-black/30 border-2 border-stone-600 rounded flex items-center justify-center cursor-pointer">
+                        ${iconContent}
+                    </div>
+                    <div class="info-container flex flex-col justify-center overflow-hidden">
+                        <div class="item-name-display text-sm truncate ${'quality-' + itemQuality}" title="${itemName}">${itemName}</div>
+                        <input type="text" class="item-id-input text-xs font-mono text-stone-400 bg-transparent border-none p-0 h-5 focus:ring-1 focus:ring-amber-500 focus:bg-stone-800 rounded" value="${itemId}" placeholder="item_id...">
+                    </div>
+                    <div class="quantity-container">
+                        <input type="number" class="item-qty-input bg-[rgba(10,5,2,0.8)] border border-[#4d2c1a] text-stone-200 rounded p-1.5 focus:outline-none focus:border-[#ffa500] font-mono text-xs text-right w-8" value="${quantity}" min="0" max="${maxStack}">
+                    </div>
+                    <button class="clear-slot-btn" title="Clear Slot">x</button>
+                </div>
+            `;
+        }
+
+        function populateBagUI(bagKey, bagData) {
+            const bagContainer = document.getElementById(`${bagKey}-container`);
+            if (!bagContainer) return;
+
+            const slotsContainer = bagContainer.querySelector(`#${bagKey}-slots`);
+            const bagTypeSlot = bagContainer.querySelector(`#${bagKey}-type-slot`);
+            
+            const bagId = (Array.isArray(bagData) && bagData.length > 0) ? bagData[0] : '';
+            
+            if (bagTypeSlot) { // For bag2 and bag3 which have a dedicated slot for the bag item
+                updateSlotDisplay(bagTypeSlot, bagId, 'Bag');
+            }
+
+            if (!slotsContainer) return;
+            slotsContainer.innerHTML = '';
+
+            const slotCount = getBagSlotCount(bagId);
+            for (let i = 1; i <= slotCount; i++) {
+                const slotData = bagData ? bagData[i] : null;
+                const displayData = Array.isArray(slotData) && slotData[0] === "empty" && slotData[1] === 0 ? null : slotData;
+                slotsContainer.innerHTML += createSlotHTML(i, displayData);
+            }
+        }
+        
+        function readBagFromUI(bagKey) {
+            const bagContainer = document.getElementById(`${bagKey}-container`);
+            if (!bagContainer) return [];
+
+            let bagId;
+            if (bagKey === 'bag1') {
+                bagId = 'backpack';
+            } else {
+                const bagTypeInput = bagContainer.querySelector(`#${bagKey}-type-slot .item-id-input`);
+                bagId = bagTypeInput ? bagTypeInput.value.trim() : '';
+            }
+
+            if (!bagId) return [];
+
+            const finalBagData = [bagId];
+            const slotContainers = bagContainer.querySelectorAll(`#${bagKey}-slots .item-slot-container`);
+            slotContainers.forEach(slot => {
+                const idInput = slot.querySelector('.item-id-input');
+                const qtyInput = slot.querySelector('.item-qty-input');
+                const itemId = idInput ? idInput.value.trim() : '';
+                const quantity = qtyInput ? parseInt(qtyInput.value, 10) : 0;
+                
+                if (!itemId) {
+                    finalBagData.push(["empty", 0]);
+                } else {
+                    finalBagData.push([itemId, isNaN(quantity) ? 0 : quantity]);
+                }
+            });
+            return finalBagData;
+        }
+
+        // --- TOOLTIP FUNCTIONS ---
+        function showTooltip(itemId, event) {
+            const item = getItem(itemId);
+            const tooltip = document.getElementById('tooltip');
+            if (!item) {
+                tooltip.classList.add('hidden');
+                return;
+            }
+
+            // --- Part 1: Icon ---
+            let iconHtml = '';
+            if (item.icon) {
+                const iconUrl = `https://wow.zamimg.com/images/wow/icons/large/${item.icon.toLowerCase()}.jpg`;
+                iconHtml = `
+                    <div class="flex-shrink-0">
+                        <img src="${iconUrl}" class="w-14 h-14 border-2 border-stone-500 rounded" alt="${item.name}">
+                    </div>
+                `;
+            }
+
+            // --- Part 2: Text Content Blocks ---
+            const textBlocks = [];
+
+            // Block: Name
+            textBlocks.push(`<div class="font-bold text-lg ${'quality-' + item.quality}">${item.name}</div>`);
+
+            // Block: Sub-header (Slot, Type)
+            const locText = item.loc && item.loc !== 'none' ? item.loc.charAt(0).toUpperCase() + item.loc.slice(1) : null;
+            const matText = item.mat && item.mat !== 'none' ? item.mat.charAt(0).toUpperCase() + item.mat.slice(1) : null;
+            let subHeaderHtml = '';
+            if (item.type === 'bag' && item.slots > 0) {
+                subHeaderHtml = `<div>${item.slots} Slot Bag</div>`;
+            } else if (locText && matText) {
+                subHeaderHtml = `<div class="flex justify-between text-stone-300"><span>${locText}</span><span>${matText}</span></div>`;
+            } else if (locText) {
+                subHeaderHtml = `<div class="text-stone-300">${locText}</div>`;
+            } else if (matText) {
+                subHeaderHtml = `<div class="text-stone-300">${matText}</div>`;
+            } else if (item.type) {
+                subHeaderHtml = `<div class="text-stone-300">${item.type.charAt(0).toUpperCase() + item.type.slice(1)}</div>`;
+            }
+            if (subHeaderHtml) textBlocks.push(subHeaderHtml);
+
+            // Block: Main Info (Armor, Damage)
+            let mainInfoHtml = '';
+            if (item.armor > 0) mainInfoHtml += `<div>${item.armor} Armor</div>`;
+            if (item.dmgmin > 0) mainInfoHtml += `<div>${item.dmgmin} - ${item.dmgmax} Damage</div>`;
+            if (mainInfoHtml) textBlocks.push(mainInfoHtml);
+
+            // Block: Stats
+            if (item.stats && item.stats.length > 0) {
+                const statsHtml = item.stats.map(s => {
+                    const statName = attributeMap[s.stat] || s.stat.charAt(0).toUpperCase() + s.stat.slice(1);
+                    return `<div class="text-green-400">+${s.num} ${statName}</div>`;
+                }).join('');
+                textBlocks.push(`<div>${statsHtml}</div>`);
+            }
+
+            // Block: Effects - Collect all explicit and derived effects
+            const effectsToShow = [];
+            if (item.effects && item.effects.length > 0) {
+                effectsToShow.push(...item.effects);
+            }
+            // For consumables, derive the effect from the ability ID
+            if (item.type === 'consumable' && item.abil) {
+                const derivedEffectId = item.abil.replace('abil_', 'eff_');
+                if (getEffect(derivedEffectId) && !effectsToShow.some(e => e.value === derivedEffectId)) {
+                     effectsToShow.push({ value: derivedEffectId });
+                }
+            }
+
+            if (effectsToShow.length > 0) {
+                const effectDescriptions = effectsToShow.map(effectRef => {
+                    const effect = getEffect(effectRef.value);
+                    if (!effect) return '';
+                    
+                    // A consumable is always "Use". Other items are "Equip" if passive (rounds: 0).
+                    const prefix = (item.type === 'consumable' || effect.rounds !== 0) ? 'Use' : 'Equip';
+                    const descriptions = [];
+                    let durationHandled = false;
+
+                    if (effect.stats && effect.stats.length > 0) {
+                        effect.stats.forEach(s => {
+                            const statName = attributeMap[s.stat] || s.stat.charAt(0).toUpperCase() + s.stat.slice(1);
+                            const verb = s.num > 0 ? 'Increases' : 'Decreases';
+                            descriptions.push(`${verb} ${statName} by ${Math.abs(s.num)}.`);
+                        });
+                    }
+                    if (effect.pcrit > 0) descriptions.push(`Increases melee critical strike chance by ${effect.pcrit}%.`);
+                    if (effect.spcrit > 0) descriptions.push(`Increases spell critical strike chance by ${effect.spcrit}%.`);
+                    if (effect.phit > 0) descriptions.push(`Increases melee hit chance by ${effect.phit}%.`);
+                    if (effect.sphit > 0) descriptions.push(`Increases spell hit chance by ${effect.sphit}%.`);
+                    if (effect.pdodge > 0) descriptions.push(`Increases dodge chance by ${effect.pdodge}%.`);
+                    if (effect.hpmod !== 0) {
+                        if (effect.hpmod > 0) descriptions.push(`Restores ${effect.hpmod} health per round.`);
+                        else descriptions.push(`Inflicts ${Math.abs(effect.hpmod)} damage per round.`);
+                    }
+                    if (effect.powermod !== 0) {
+                        if (effect.powermod > 0) descriptions.push(`Restores ${effect.powermod} power per round.`);
+                        else descriptions.push(`Drains ${Math.abs(effect.powermod)} power per round.`);
+                    }
+
+                    if (effect.stun) {
+                        if (effect.rounds > 0) {
+                           descriptions.push(`Stuns the target for ${effect.rounds} rounds.`);
+                           durationHandled = true;
+                        } else {
+                           descriptions.push('Stuns the target.');
+                        }
+                    }
+                    if (effect.silence) {
+                        if (effect.rounds > 0) {
+                           descriptions.push(`Silences the target for ${effect.rounds} rounds.`);
+                           durationHandled = true;
+                        } else {
+                           descriptions.push('Silences the target.');
+                        }
+                    }
+                    
+                    if (descriptions.length === 0) return '';
+                    let fullDescription = descriptions.join(' ');
+                    if (effect.rounds > 0 && !durationHandled) {
+                        fullDescription += ` Lasts for ${effect.rounds} rounds.`;
+                    }
+                    return `<div class="text-green-300">${prefix}: ${fullDescription}</div>`;
+                }).filter(Boolean).join('');
+
+                if (effectDescriptions) {
+                    textBlocks.push(`<div class="space-y-1">${effectDescriptions}</div>`);
+                }
+            }
+
+            // Block: Level Requirement
+            if (item.level > 0) {
+                if (item.type === 'trade' || item.type === 'quest') {
+                    textBlocks.push(`<div class="text-yellow-400">Item Level ${item.level}</div>`);
+                } else {
+                    textBlocks.push(`<div class="text-stone-300">Requires Level ${item.level}</div>`);
+                }
+            }
+
+            // Block: Description
+            if (item.desc) textBlocks.push(`<div class="text-amber-300 italic">"${item.desc}"</div>`);
+            
+            // Block: Stack Size
+            if (item.stack > 1) textBlocks.push(`<div class="text-stone-400">Max Stack: ${item.stack}</div>`);
+            
+            // Block: Sell Price
+            if (item.val > 0) {
+                textBlocks.push(formatCurrency(item.val));
+            }
+            
+            // --- Part 3: Final Assembly ---
+            const textPartHtml = textBlocks.join('');
+
+            tooltip.innerHTML = `
+                <div class="flex gap-3">
+                    ${iconHtml}
+                    <div class="flex-grow space-y-2">
+                        ${textPartHtml}
+                    </div>
+                </div>
+            `;
+
+            tooltip.style.left = `${event.pageX + 15}px`;
+            tooltip.style.top = `${event.pageY + 15}px`;
+            tooltip.classList.remove('hidden');
+        }
+
+        function hideTooltip() {
+            document.getElementById('tooltip').classList.add('hidden');
+        }
+
+        // --- SAVE DATA PROCESSING ---
+        function loadSaveData(saveData) {
+            document.getElementById('statEditor').classList.remove('hidden');
+            
+            document.getElementById('playerClass').value = saveData.playerClass || 'N/A';
+            document.getElementById('currentZone').value = saveData.currentZone || 'N/A';
+
+            const totalCopper = Math.max(0, saveData.playerMoney || 0);
+            document.getElementById('playerMoneyGold').value = Math.floor(totalCopper / 10000);
+            document.getElementById('playerMoneySilver').value = Math.floor((totalCopper % 10000) / 100);
+            document.getElementById('playerMoneyCopper').value = totalCopper % 100;
+            
+            document.getElementById('playTime').value = Math.max(0, saveData.playTime || 0);
+            const clampedXP = Math.min(22400, Math.max(0, saveData.playerXP || 0));
+            document.getElementById('playerXP').value = clampedXP;
+            document.getElementById('playerLevel').value = getLevelForXp(clampedXP);
+            document.getElementById('unlockedChests').value = Math.max(0, saveData.unlocked_chests || 0);
+
+            const playerAbilitiesEl = document.getElementById('playerAbilities');
+            if (saveData.playerAbilities && Array.isArray(saveData.playerAbilities)) {
+                playerAbilitiesEl.value = saveData.playerAbilities.join('\n');
+            } else {
+                playerAbilitiesEl.value = '';
+            }
+
+            const activeQuestsEl = document.getElementById('activeQuests');
+            if (saveData.activeQuests && Array.isArray(saveData.activeQuests)) {
+                activeQuestsEl.value = saveData.activeQuests.join('\n');
+            } else {
+                activeQuestsEl.value = '';
+            }
+
+            const completedQuestsEl = document.getElementById('completedQuests');
+            if (saveData.completedQuests && Array.isArray(saveData.completedQuests)) {
+                completedQuestsEl.value = saveData.completedQuests.join('\n');
+            } else {
+                completedQuestsEl.value = '';
+            }
+
+            populateEquipmentUI(saveData.playerEquipment || []);
+            
+            populateBagUI('bag1', saveData.bag1);
+            populateBagUI('bag2', saveData.bag2);
+            populateBagUI('bag3', saveData.bag3);
+        }
+        
+        function applyEdits(saveData) {
+            const gold = parseInt(document.getElementById('playerMoneyGold').value) || 0;
+            const silver = parseInt(document.getElementById('playerMoneySilver').value) || 0;
+            const copper = parseInt(document.getElementById('playerMoneyCopper').value) || 0;
+            saveData.playerMoney = (gold * 10000) + (silver * 100) + copper;
+
+            saveData.playTime = Number(document.getElementById('playTime').value);
+            saveData.playerXP = getXpForLevel(parseInt(document.getElementById('playerLevel').value) || 1);
+            saveData.unlocked_chests = Number(document.getElementById('unlockedChests').value);
+            
+            const playerAbilitiesStr = document.getElementById('playerAbilities').value.trim();
+            if (playerAbilitiesStr) {
+                saveData.playerAbilities = playerAbilitiesStr.split('\n').map(q => q.trim()).filter(q => q);
+            } else {
+                saveData.playerAbilities = [];
+            }
+            
+            const activeQuestsStr = document.getElementById('activeQuests').value.trim();
+            if (activeQuestsStr) {
+                saveData.activeQuests = activeQuestsStr.split('\n').map(q => q.trim()).filter(q => q);
+            } else {
+                saveData.activeQuests = [];
+            }
+
+            const completedQuestsStr = document.getElementById('completedQuests').value.trim();
+            if (completedQuestsStr) {
+                saveData.completedQuests = completedQuestsStr.split('\n').map(q => q.trim()).filter(q => q);
+            } else {
+                saveData.completedQuests = [];
+            }
+            
+            saveData.playerEquipment = readEquipmentFromUI();
+            
+            saveData.bag1 = readBagFromUI('bag1');
+            saveData.bag2 = readBagFromUI('bag2');
+            saveData.bag3 = readBagFromUI('bag3');
+            return saveData;
+        }
+
+        // --- EVENT LISTENERS ---
+        document.getElementById('playerLevel').addEventListener('input', function() {
+            this.value = Math.min(40, Math.max(1, parseInt(this.value) || 1));
+            document.getElementById('playerXP').value = getXpForLevel(this.value);
+        });
+
+        document.getElementById('playerXP').addEventListener('input', function() {
+            this.value = Math.min(22400, Math.max(0, parseInt(this.value) || 0));
+            document.getElementById('playerLevel').value = getLevelForXp(this.value);
+        });
+
+        const editorContainer = document.getElementById('statEditor');
+
+        function handleTooltip(event, show) {
+            const target = event.target;
+            const slotContainer = target.closest('.item-slot-container');
+            if (slotContainer) {
+                const idInput = slotContainer.querySelector('.item-id-input');
+                if (idInput) {
+                    const id = idInput.value;
+                    if (show) {
+                        showTooltip(id, event);
+                    } else {
+                        hideTooltip();
+                    }
+                }
+            }
+        }
+
+        function deselectActiveSlot() {
+            if (activeSlotDisplay) {
+                activeSlotDisplay.classList.remove('active-slot');
+                activeSlotDisplay = null;
+            }
+        }
+        
+        editorContainer.addEventListener('mouseover', e => handleTooltip(e, true));
+        editorContainer.addEventListener('mouseout', e => handleTooltip(e, false));
+        editorContainer.addEventListener('mousemove', e => {
+            const tooltip = document.getElementById('tooltip');
+            if (!tooltip.classList.contains('hidden')) {
+                tooltip.style.left = `${e.pageX + 15}px`;
+                tooltip.style.top = `${e.pageY + 15}px`;
+            }
+        });
+        
+        document.addEventListener('click', (e) => {
+            const iconTarget = e.target.closest('.icon-container');
+            const clearBtnTarget = e.target.closest('.clear-slot-btn');
+            
+            if (e.target.closest('#itemList a')) {
+                return;
+            }
+
+            if (iconTarget) {
+                if (activeSlotDisplay !== iconTarget) {
+                    deselectActiveSlot();
+                    activeSlotDisplay = iconTarget;
+                    activeSlotDisplay.classList.add('active-slot');
+                }
+            } else if (clearBtnTarget) {
+                const slotContainer = clearBtnTarget.closest('.item-slot-container');
+                if (slotContainer) {
+                    const slotType = getSlotTypeFromContainer(slotContainer);
+                    updateSlotDisplay(slotContainer, null, slotType);
+
+                    if (slotType === 'Bag' && slotContainer.id.includes('-type-slot')) {
+                        const bagKey = slotContainer.id.slice(0, 4);
+                        document.getElementById(`${bagKey}-slots`).innerHTML = '';
+                    }
+                }
+            } else {
+                deselectActiveSlot();
+            }
+        });
+
+        editorContainer.addEventListener('blur', e => {
+            if (e.target.matches('.item-id-input')) {
+                const slotContainer = e.target.closest('.item-slot-container');
+                if (slotContainer) {
+                    const newId = e.target.value.trim();
+                    const slotType = getSlotTypeFromContainer(slotContainer);
+                    updateSlotDisplay(slotContainer, newId, slotType);
+
+                    if (slotType === 'Bag' && slotContainer.id.includes('-type-slot')) {
+                        const bagKey = slotContainer.id.slice(0, 4);
+                        populateBagUI(bagKey, readBagFromUI(bagKey));
+                    }
+                }
+            }
+        }, true);
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === "Escape") {
+                deselectActiveSlot();
+            }
+        });
+
+        document.getElementById('fileInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            const errorEl = document.getElementById('error');
+            const inputJsonEl = document.getElementById('inputJson');
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                inputJsonEl.value = e.target.result;
+                errorEl.textContent = '';
+                try { loadSaveData(JSON.parse(e.target.result)); } 
+                catch (err) { errorEl.textContent = 'The scroll could not be read. ' + err.message; }
+            };
+            reader.onerror = () => { errorEl.textContent = 'Error reading the scroll file.'; };
+            reader.readAsText(file);
+        });
+        
+        document.getElementById('inputJson').addEventListener('input', function(e) {
+            const text = e.target.value.trim();
+            if (!text) return;
+            try { 
+                const data = JSON.parse(text);
+                loadSaveData(data); 
+            } 
+            catch (err) { /* Silently fail on invalid JSON during typing */ }
+        });
+
+        document.getElementById('calculateButton').addEventListener('click', () => {
+            const inputJsonEl = document.getElementById('inputJson');
+            const outputJsonEl = document.getElementById('outputJson');
+            const errorEl = document.getElementById('error');
+            outputJsonEl.value = '';
+            errorEl.textContent = '';
+            document.getElementById('exportSection').classList.add('hidden');
+            if (inputJsonEl.value.trim() === '') {
+                errorEl.textContent = 'The scroll is blank! Inscribe your data first.';
+                return;
+            }
+            try {
+                let saveData = JSON.parse(inputJsonEl.value);
+                saveData = applyEdits(saveData);
+                saveData.hash = calculateHash(saveData);
+                outputJsonEl.value = JSON.stringify(saveData, null, 4);
+                document.getElementById('exportSection').classList.remove('hidden');
+            } catch (e) {
+                errorEl.textContent = 'The inscription is corrupt. ' + e.message;
+            }
+        });
+        
+        document.getElementById('exportButton').addEventListener('click', () => {
+            const outputJson = document.getElementById('outputJson').value;
+            const saveFileName = document.getElementById('saveFileName').value || 'murloc_save';
+            const successMsg = document.getElementById('successMsg');
+            successMsg.classList.remove('show');
+            if (!outputJson) {
+                document.getElementById('error').textContent = 'Nothing to export! Re-forge the seal first.';
+                return;
+            }
+            try {
+                const blob = new Blob([outputJson], { type: 'text/plain' });
+                const a = document.createElement('a');
+                a.download = saveFileName + '.sav';
+                a.href = window.URL.createObjectURL(blob);
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(a.href);
+                document.body.removeChild(a);
+                successMsg.classList.add('show');
+                setTimeout(() => successMsg.classList.remove('show'), 3000);
+            } catch (e) {
+                document.getElementById('error').textContent = 'Failed to export: ' + e.message;
+            }
+        });
+
+        // --- ITEM DICTIONARY SCRIPT ---
+        const itemListEl = document.getElementById('itemList');
+        if(Object.keys(itemDB).length > 0){
+            const itemArray = Object.values(itemDB).sort((a, b) => a.name.localeCompare(b.name));
+            itemArray.forEach(item => {
+                const itemEl = document.createElement('a');
+                itemEl.href = '#';
+                itemEl.textContent = item.name;
+                itemEl.dataset.itemId = item.id;
+                itemEl.className = `block p-1 rounded hover:bg-stone-700/50 text-sm truncate cursor-pointer quality-${item.quality}`;
+                itemEl.title = item.name;
+                itemListEl.appendChild(itemEl);
+            });
+            initializeFilters();
+        }
+
+        function populateFilter(selectEl, optionsSet) {
+            const sortedOptions = [...optionsSet].sort((a, b) => a.localeCompare(b));
+            sortedOptions.forEach(optionValue => {
+                if (optionValue && optionValue !== "none") {
+                    const optionEl = document.createElement('option');
+                    optionEl.value = optionValue;
+                    optionEl.textContent = optionValue.charAt(0).toUpperCase() + optionValue.slice(1);
+                    selectEl.appendChild(optionEl);
+                }
+            });
+        }
+
+        function initializeFilters() {
+            // Populate dynamic filter sets from item DB
+            for (const key in itemDB) {
+                const item = itemDB[key];
+                if (item.type) filterValueSets.types.add(item.type);
+                if (item.loc && item.loc !== 'none') filterValueSets.locs.add(item.loc);
+                if (item.mat && item.mat !== 'none') filterValueSets.mats.add(item.mat);
+            }
+
+            // --- Manually populate Quality Filter with specific order and colors ---
+            const filterQualityEl = document.getElementById('filterQuality');
+            while (filterQualityEl.options.length > 1) { // Clear any pre-existing options
+                filterQualityEl.remove(1);
+            }
+            filterValueSets.qualities.forEach(quality => {
+                const optionEl = document.createElement('option');
+                optionEl.value = quality;
+                optionEl.textContent = quality.charAt(0).toUpperCase() + quality.slice(1);
+                optionEl.className = `quality-${quality}`; // Apply color class
+                filterQualityEl.appendChild(optionEl);
+            });
+
+            // --- Populate other filters dynamically ---
+            populateFilter(document.getElementById('filterType'), filterValueSets.types);
+            populateFilter(document.getElementById('filterLoc'), filterValueSets.locs);
+            populateFilter(document.getElementById('filterMat'), filterValueSets.mats);
+
+            // --- Add event listeners ---
+            document.querySelectorAll('#itemSearch, .filter-select').forEach(el => {
+                const eventType = el.tagName === 'SELECT' ? 'change' : 'input';
+                el.addEventListener(eventType, applyFilters);
+            });
+
+            // Add listener to change the select box color on selection
+            filterQualityEl.addEventListener('change', (e) => {
+                e.target.className = e.target.className.replace(/\s?quality-\w+/g, '');
+                const selectedOption = e.target.options[e.target.selectedIndex];
+                if (selectedOption.className) {
+                    e.target.classList.add(selectedOption.className);
+                }
+            });
+        }
+
+        function applyFilters() {
+            const searchTerm = document.getElementById('itemSearch').value.toLowerCase().trim();
+            const selectedQuality = document.getElementById('filterQuality').value;
+            const selectedType = document.getElementById('filterType').value;
+            const selectedLoc = document.getElementById('filterLoc').value;
+            const selectedMat = document.getElementById('filterMat').value;
+
+            // Split search term by spaces or commas
+            const searchKeywords = searchTerm.split(/[ ,]+/).filter(k => k);
+
+            // Categorize keywords from the search input
+            const nameSearchTerms = [];
+            const qualitySearchTerms = [];
+            const typeSearchTerms = [];
+            const locSearchTerms = [];
+            const matSearchTerms = [];
+
+            searchKeywords.forEach(keyword => {
+                if (filterValueSets.qualities.includes(keyword)) {
+                    qualitySearchTerms.push(keyword);
+                } else if (filterValueSets.types.has(keyword)) {
+                    typeSearchTerms.push(keyword);
+                } else if (filterValueSets.locs.has(keyword)) {
+                    locSearchTerms.push(keyword);
+                } else if (filterValueSets.mats.has(keyword)) {
+                    matSearchTerms.push(keyword);
+                } else {
+                    nameSearchTerms.push(keyword);
+                }
+            });
+
+            const itemLinks = itemListEl.getElementsByTagName('a');
+
+            for (const itemLink of itemLinks) {
+                const itemId = itemLink.dataset.itemId;
+                const itemData = getItem(itemId);
+
+                if (!itemData) {
+                    itemLink.style.display = 'none';
+                    continue;
+                }
+
+                const itemLoc = itemData.loc || 'none';
+                const itemMat = itemData.mat || 'none';
+
+                // --- Match against dropdowns first ---
+                const dropdownQualityMatch = selectedQuality === 'all' || itemData.quality === selectedQuality;
+                const dropdownTypeMatch = selectedType === 'all' || itemData.type === selectedType;
+                const dropdownLocMatch = selectedLoc === 'all' || itemLoc === selectedLoc;
+                const dropdownMatMatch = selectedMat === 'all' || itemMat === selectedMat;
+
+                // --- Then match against search keywords ---
+                // 'every' ensures all name terms must match. 'includes' checks if the item's property is in the list of search terms.
+                const nameMatch = nameSearchTerms.every(term => itemData.name.toLowerCase().includes(term));
+                const searchQualityMatch = qualitySearchTerms.length === 0 || qualitySearchTerms.includes(itemData.quality);
+                const searchTypeMatch = typeSearchTerms.length === 0 || typeSearchTerms.includes(itemData.type);
+                const searchLocMatch = locSearchTerms.length === 0 || locSearchTerms.includes(itemLoc);
+                const searchMatMatch = matSearchTerms.length === 0 || matSearchTerms.includes(itemMat);
+
+                // An item is shown only if it matches ALL filter criteria
+                if (dropdownQualityMatch && dropdownTypeMatch && dropdownLocMatch && dropdownMatMatch &&
+                    nameMatch && searchQualityMatch && searchTypeMatch && searchLocMatch && searchMatMatch) {
+                    itemLink.style.display = 'block';
+                } else {
+                    itemLink.style.display = 'none';
+                }
+            }
+        }
+
+        // --- ITEM CODEX EVENT LISTENERS ---
+        itemListEl.addEventListener('click', (e) => {
+            const target = e.target.closest('a');
+            if (target && target.dataset.itemId) {
+                e.preventDefault();
+                if (activeSlotDisplay) {
+                    const newItemId = target.dataset.itemId;
+                    const newItem = getItem(newItemId);
+                    
+                    const slotContainer = activeSlotDisplay.closest('.item-slot-container');
+                    if (!slotContainer) { 
+                        deselectActiveSlot();
+                        return; 
+                    }
+
+                    const slotType = getSlotTypeFromContainer(slotContainer);
+                    const isBagTypeSlot = slotType === 'Bag' && slotContainer.id.includes('-type-slot');
+
+                    if (isBagTypeSlot) {
+                        if (newItem.type !== 'bag') {
+                            alert('You can only place bags in this slot.');
+                            deselectActiveSlot();
+                            return;
+                        }
+                        
+                        // Get current bag information
+                        const bagKey = slotContainer.id.slice(0, 4);
+                        const currentBagData = readBagFromUI(bagKey);
+                        const oldBagItemId = currentBagData[0];
+                        const oldBagSlotCount = getBagSlotCount(oldBagItemId);
+                        const newBagSlotCount = newItem.slots || 0;
+                        
+                        // Check if switching to a smaller bag and if there are items that would be lost
+                        if (newBagSlotCount < oldBagSlotCount && oldBagSlotCount > 0) {
+                            // Check if there are items in slots that would be lost
+                            const currentBagSlots = currentBagData.slice(1); // Remove bag item, keep only slot data
+                            let hasItemsToLose = false;
+                            
+                            // Check slots beyond the new bag's capacity
+                            for (let i = newBagSlotCount; i < currentBagSlots.length; i++) {
+                                const slotData = currentBagSlots[i];
+                                if (slotData && slotData[0] && slotData[0] !== "empty") {
+                                    hasItemsToLose = true;
+                                    break;
+                                }
+                            }
+                            
+                            if (hasItemsToLose) {
+                                const newBagName = newItem.name || newItemId;
+                                const slotsToLose = oldBagSlotCount - newBagSlotCount;
+                                const message = `Switching to ${newBagName} (${newBagSlotCount} slots) will lose items in ${slotsToLose} slot(s). Items in slots ${newBagSlotCount + 1} to ${oldBagSlotCount} will be lost. Continue?`;
+                                
+                                if (!confirm(message)) {
+                                    deselectActiveSlot();
+                                    return;
+                                }
+                            }
+                        }
+                        
+                        // Proceed with the bag change
+                        updateSlotDisplay(slotContainer, newItemId);
+                        populateBagUI(bagKey, readBagFromUI(bagKey));
+                    } else {
+                        updateSlotDisplay(slotContainer, newItemId, slotType);
+                    }
+                    deselectActiveSlot();
+                } else {
+                     navigator.clipboard.writeText(target.dataset.itemId).then(() => {
+                        const originalText = target.title;
+                        target.textContent = 'Copied!';
+                        target.classList.add('text-green-400');
+                        setTimeout(() => {
+                            target.textContent = originalText;
+                            target.classList.remove('text-green-400');
+                        }, 1500);
+                    });
+                }
+            }
+        });
+
+        itemListEl.addEventListener('mouseover', e => {
+            const target = e.target.closest('a');
+            if (target && target.dataset.itemId) {
+                showTooltip(target.dataset.itemId, e);
+            }
+        });
+
+        itemListEl.addEventListener('mouseout', e => {
+            const target = e.target.closest('a');
+            if (target && target.dataset.itemId) {
+                hideTooltip();
+            }
+        });
+
+        itemListEl.addEventListener('mousemove', e => {
+            const tooltip = document.getElementById('tooltip');
+            if (!tooltip.classList.contains('hidden')) {
+                tooltip.style.left = `${e.pageX + 15}px`;
+                tooltip.style.top = `${e.pageY + 15}px`;
+            }
+        });
+    </script>
+</body>
+</html>
