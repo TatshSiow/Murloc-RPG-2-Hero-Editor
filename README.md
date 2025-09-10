@@ -41,11 +41,11 @@ This tool can edit game saves and regenerate the correct hash automatically, so 
 > ⚡ Use at your own risk!
 
 1. 🔍 Locate your exported **murloc-2.sav** file.  
-2. 📂 Import save file in **Murloc 2 Hero Editor**.  
+2. 📂 Import save file in [**Murloc 2 Hero Editor**](https://murloc-rpg-2-hero-editor.vercel.app).  
 3. ✏️ Modify your stats, inventory or equipments.
-4. ⏩ Click Reforge Seal to generate the save file.
-5. 💾 Export or replace your original save file with the edited version.  
-6. 🕹️ Load your save file and enjoy!  
+4. ⏩ Click **Reforge Seal** to generate the save file json.
+5. 💾 **Export** or **replace** your original save file with the edited version.  
+6. 🕹️ Load your save file and enjoy!
 
 ## 📷 Screenshots (WIP) 🖼️
 
