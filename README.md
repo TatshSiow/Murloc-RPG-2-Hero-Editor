@@ -46,9 +46,12 @@ This tool can edit game saves and regenerate the correct hash automatically, so 
 1. 🔍 Locate your exported **murloc-2.sav** file.  
 2. 📂 Import save file in [**Murloc 2 Hero Editor**](https://murloc-rpg-2-hero-editor.vercel.app).  
 3. ✏️ Modify your stats, inventory or equipments.
-   - Click on the slot you want to place item (will light up the box as yellow)
+   - Click on the slot you want to place item (will light up the box as **YELLOW**)
    - Click on the codex to put the item inside the slot
-   - This also use as replace item, so BE CAREFUL while editing, I hope you don't lose your item (Although you can still get it from codex :) )
+   - This also use as replace item, so **BE CAREFUL** while editing, I hope you don't lose your item (Although you can still get it from codex :) )
+   - You can also change the item code to add/change items
+   - Since I don't limit item stack value, make sure you check the max stack before changing the quantity, to make sure you don't messed up your save
+   - All equipments only stack 1, don't input over this value
 5. ⏩ Click **Reforge Seal** to generate the save file json.
 6. 💾 **Export** or **replace** your original save file with the edited version.  
 7. 🕹️ Load your save file and enjoy!
