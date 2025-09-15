@@ -1309,17 +1309,10 @@
         itemListEl.addEventListener('mousemove', e => {
             const tooltip = document.getElementById('tooltip');
             if (!tooltip.classList.contains('hidden')) {
-    <title>Murloc 2 Hero Editor</title>
+                tooltip.style.left = `${e.pageX + 15}px`;
                 tooltip.style.top = `${e.pageY + 15}px`;
             }
         });
-    </script>
-    <script>
-      window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
-    </script>
-    <script defer src="/_vercel/insights/script.js"></script>
-    <script>
-      window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
     </script>
 </body>
 </html>
