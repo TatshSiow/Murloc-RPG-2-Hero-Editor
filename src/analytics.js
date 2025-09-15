@@ -1,7 +1,11 @@
 import { analytics } from '@vercel/analytics';
+import { injectSpeedInsights } from '@vercel/speed-insights';
 
 // Initialize Vercel Analytics
 analytics.track('page_view');
+
+// Initialize Vercel Speed Insights
+injectSpeedInsights();
 
 // Custom event tracking functions
 export const trackEvent = (eventName, properties = {}) => {
