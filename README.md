@@ -61,7 +61,6 @@ This tool can edit game saves and regenerate the correct hash automatically, so 
 <p align="center">
   <img src="screenshots/equipment.png" alt="Equipment UI" width="300"/>
   <img src="screenshots/inventory.png" alt="Inventory UI" width="300"/>
-  <img src="screenshots/codex.png" alt="Item Codex UI" width="300"/>
 </p>
 
 ---
