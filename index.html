@@ -766,12 +766,24 @@
         }
 
         .codex-panel {
-            position: sticky;
-            top: 8px;
+            position: fixed;
+            top: 232px; /* further below header frame */
+            right: calc((100vw - 1280px) / 2 + 18px);
+            width: 280px;
+            z-index: 50;
+        }
+
+        @media (max-width: 1279px) {
+            .codex-panel {
+                position: static;
+                width: 100%;
+                right: auto;
+                top: auto;
+            }
         }
 
         .codex-list {
-            max-height: 65vh;
+            max-height: 50vh; /* shorter codex for fixed layout */
             overflow-y: auto;
             padding: 4px;
             border-radius: var(--wow-radius-inner);
@@ -1095,13 +1107,15 @@
     </style>
 </head>
 <body class="wow-page antialiased tracking-wide">
-    <div class="wow-frame">
-        <header class="wow-header">
+    <div id="wow-header-wrapper" class="wow-frame">
+        <header id="pageHeader" class="wow-header">
             <h1 class="wow-header-title">Murloc RPG 2 Save Scrivener</h1>
             <p class="wow-header-subtitle">Present your save scroll or inscribe its contents below.</p>
             <div class="wow-header-divider"></div>
         </header>
+    </div>
 
+    <div id="wow-main-wrapper" class="wow-frame">
         <div class="wow-main">
 
             <!-- Left Column: Main Editor -->
