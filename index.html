@@ -685,6 +685,134 @@
             gap: 8px;
         }
 
+        /* Equipment column wrappers */
+        #equipment-col-left,
+        #equipment-col-middle,
+        #equipment-col-right {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        /* Equipment slot wrapper (label + slot) */
+        .equipment-slot-wrapper {
+            background: radial-gradient(circle at 0 0, rgba(248, 214, 109, 0.05), rgba(8, 4, 2, 0.98));
+            border-radius: 8px;
+            border: 1px solid rgba(112, 78, 40, 0.7);
+            box-shadow:
+                0 0 8px rgba(0, 0, 0, 1),
+                inset 0 0 8px rgba(0, 0, 0, 0.95);
+            padding: 4px 5px 5px 5px;
+        }
+
+        .equipment-slot-wrapper > label {
+            display: block;
+            margin-bottom: 3px;
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--wow-text-label);
+            text-shadow: 0 0 4px #000;
+        }
+
+        /* Generic item slot container used across equipment & bags */
+        .item-slot-container {
+            position: relative;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 4px;
+            border-radius: var(--wow-radius-slot);
+            border: 1px solid var(--wow-border-iron-soft);
+            background: radial-gradient(circle at 0 0, rgba(248, 214, 109, 0.04), rgba(4, 3, 2, 1));
+            box-shadow:
+                inset 0 0 8px rgba(0, 0, 0, 0.98),
+                0 0 4px rgba(0, 0, 0, 0.9);
+        }
+
+        .item-slot-container .icon-container {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--wow-radius-slot);
+            background: radial-gradient(circle at 18% 0, rgba(248, 214, 109, 0.08), rgba(0, 0, 0, 1));
+            border: 1px solid #4b3a25;
+            box-shadow:
+                0 0 5px rgba(0, 0, 0, 1),
+                inset 0 0 6px rgba(0, 0, 0, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .item-slot-container .icon-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: var(--wow-radius-slot);
+        }
+
+        .item-slot-container .item-name-display {
+            font-size: 10px;
+            line-height: 1.25;
+            color: var(--wow-text-main);
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            text-shadow: 0 0 4px #000;
+        }
+
+        .item-slot-container .item-id-input {
+            width: 100%;
+            margin-top: 1px;
+            font-size: 9px;
+            font-family: var(--wow-font-body);
+            color: var(--wow-text-soft);
+            background: transparent;
+            border: 1px solid transparent;
+            padding: 1px 2px;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .item-slot-container .item-id-input:focus {
+            border-color: var(--wow-accent-gold);
+            background: rgba(6, 4, 3, 1);
+            box-shadow: 0 0 6px rgba(0, 0, 0, 1);
+            color: var(--wow-text-main);
+        }
+
+        .item-slot-container .item-qty-input {
+            width: 26px;
+            font-size: 9px;
+            padding: 2px 3px;
+            border-radius: 3px;
+            background: rgba(6, 3, 2, 1);
+            border: 1px solid var(--wow-border-iron);
+            color: var(--wow-accent-gold);
+            text-align: right;
+            outline: none;
+            box-shadow: inset 0 0 6px rgba(0, 0, 0, 1);
+        }
+
+        .item-slot-container .item-qty-input:focus {
+            border-color: var(--wow-accent-gold);
+        }
+
+        /* Bag panel containers keep layout; rows remain 4 slots via existing Tailwind grid classes */
+        .bag-panel {
+            margin-top: 3px;
+        }
+
+        #bag1-slots .item-slot-container,
+        #bag2-slots .item-slot-container,
+        #bag3-slots .item-slot-container {
+            padding: 3px;
+        }
+
         .wow-slot {
             position: relative;
             padding: 4px 5px;
@@ -1447,6 +1575,91 @@
 
         let activeSlotDisplay = null;
 
+        // --- EQUIPMENT SLOT VALIDATION ---
+
+        /**
+         * Normalize a slot label (e.g. "Shoulders") into a canonical key
+         * matching item.loc semantics from the item database (e.g. "shoulders").
+         */
+        function normalizeEquipmentSlotKey(slotType) {
+            if (!slotType) return '';
+            const key = String(slotType).trim().toLowerCase();
+            switch (key) {
+                case 'head': return 'head';
+                case 'neck': return 'neck';
+                case 'shoulders':
+                case 'shoulder': return 'shoulders';
+                case 'back': return 'back';
+                case 'chest': return 'chest';
+                case 'wrist':
+                case 'wrists': return 'wrist';
+                case 'gloves':
+                case 'hands': return 'gloves';
+                case 'belt':
+                case 'waist': return 'belt';
+                case 'legs': return 'legs';
+                case 'boots':
+                case 'feet': return 'boots';
+                case 'ring':
+                case 'finger': return 'ring';
+                case 'trinket': return 'trinket';
+                case 'weapon': return 'weapon';
+                default: return key;
+            }
+        }
+
+        /**
+         * Centralized compatibility check for equipment slots.
+         *
+         * @param {Object|null} item - Item object from getItem(...)
+         * @param {string} slotType - Slot label/type (e.g. "Head", "Ring", "Weapon")
+         * @returns {boolean} true if the item is allowed in that equipment slot.
+         */
+        function isItemAllowedInEquipmentSlot(item, slotType) {
+            if (!item) return false;
+
+            const normalizedSlot = normalizeEquipmentSlotKey(slotType);
+            if (!normalizedSlot) return false;
+
+            const itemType = (item.type || '').toLowerCase();
+            const itemLoc = (item.loc || '').toLowerCase();
+
+            // Weapon: only weapon-type items.
+            if (normalizedSlot === 'weapon') {
+                return itemType === 'weapon';
+            }
+
+            // Jewelry / trinket slots rely on loc.
+            if (normalizedSlot === 'neck') {
+                return itemLoc === 'neck';
+            }
+            if (normalizedSlot === 'ring') {
+                return itemLoc === 'ring';
+            }
+            if (normalizedSlot === 'trinket') {
+                return itemLoc === 'trinket';
+            }
+
+            // Standard armor slots: require armor type plus matching loc.
+            if ([
+                'head',
+                'shoulders',
+                'back',
+                'chest',
+                'wrist',
+                'gloves',
+                'belt',
+                'legs',
+                'boots'
+            ].includes(normalizedSlot)) {
+                if (itemType !== 'armor') return false;
+                return itemLoc === normalizedSlot;
+            }
+
+            // Non-equipment slots should not route here; treat as incompatible.
+            return false;
+        }
+
         // --- CORE HELPER FUNCTIONS ---
         function getEffect(effectId) {
             if (!effectId) return null;
@@ -1682,7 +1895,13 @@
                         <input type="text" class="item-id-input text-xs font-mono text-stone-400 bg-transparent border-none p-0 h-5 focus:ring-1 focus:ring-amber-500 focus:bg-stone-800 rounded" value="${itemId}" placeholder="item_id...">
                     </div>
                     <div class="quantity-container">
-                        <input type="number" class="item-qty-input bg-[rgba(10,5,2,0.8)] border border-[#4d2c1a] text-stone-200 rounded p-1.5 focus:outline-none focus:border-[#ffa500] font-mono text-xs text-right w-8" value="${quantity}" min="0" max="${maxStack}">
+                        <input
+                            type="number"
+                            class="item-qty-input bg-[rgba(10,5,2,0.8)] border border-[#4d2c1a] text-stone-200 rounded p-1.5 focus:outline-none focus:border-[#ffa500] font-mono text-xs text-right w-8"
+                            value="${Math.min(Math.max(quantity, 0), maxStack)}"
+                            min="0"
+                            max="${maxStack}"
+                        >
                     </div>
                     <button class="clear-slot-btn" title="Clear Slot">x</button>
                 </div>
@@ -1917,6 +2136,58 @@
             document.getElementById('tooltip').classList.add('hidden');
         }
 
+        // --- TOAST HELPER ---
+        (function () {
+            let toastEl = null;
+            let hideTimeoutId = null;
+
+            window.showToast = function (message) {
+                if (!message) return;
+
+                if (!toastEl) {
+                    toastEl = document.createElement('div');
+                    toastEl.id = 'toastNotification';
+                    toastEl.style.position = 'fixed';
+                    toastEl.style.left = '50%';
+                    toastEl.style.top = '80px';
+                    toastEl.style.transform = 'translateX(-50%)';
+                    toastEl.style.maxWidth = '360px';
+                    toastEl.style.padding = '10px 18px';
+                    toastEl.style.borderRadius = '7px';
+                    toastEl.style.background = 'rgba(10, 10, 10, 0.95)';
+                    toastEl.style.border = '1.5px solid #C79C6E';
+                    toastEl.style.boxShadow = '0 0 18px rgba(0, 0, 0, 0.85)';
+                    toastEl.style.color = '#F8E7B0';
+                    toastEl.style.fontFamily = "var(--wow-font-body, system-ui, -apple-system, BlinkMacSystemFont, sans-serif)";
+                    toastEl.style.fontSize = '12px';
+                    toastEl.style.fontWeight = '600';
+                    toastEl.style.letterSpacing = '0.06em';
+                    toastEl.style.textTransform = 'none';
+                    toastEl.style.textAlign = 'center';
+                    toastEl.style.zIndex = '9999';
+                    toastEl.style.opacity = '0';
+                    toastEl.style.transition = 'opacity 150ms ease-out';
+                    toastEl.style.pointerEvents = 'none';
+                    document.body.appendChild(toastEl);
+                }
+
+                toastEl.textContent = message;
+
+                if (hideTimeoutId !== null) {
+                    clearTimeout(hideTimeoutId);
+                    hideTimeoutId = null;
+                }
+
+                // Show (or keep visible) for a fresh duration
+                toastEl.style.opacity = '1';
+
+                hideTimeoutId = setTimeout(() => {
+                    toastEl.style.opacity = '0';
+                    hideTimeoutId = null;
+                }, 2000);
+            };
+        })();
+
         // --- ACHIEVEMENT RENDERING (shared) ---
         function renderAchievements(playTimeSeconds, unlockedChests) {
             const achievementPanel = document.getElementById('achievementPanel');
@@ -2145,6 +2416,56 @@
             saveData.bag3 = readBagFromUI('bag3');
             return saveData;
         }
+
+        // --- ENFORCE BAG ITEM QUANTITY CAPS ---
+        (function enforceBagQuantityCaps() {
+            document.addEventListener('input', function (event) {
+                const qtyInput = event.target;
+                if (!qtyInput.classList.contains('item-qty-input')) return;
+
+                const slotContainer = qtyInput.closest('.item-slot-container');
+                if (!slotContainer) return;
+
+                // Only enforce for bag/backpack grids, not equipment.
+                if (
+                    !slotContainer.closest('#bag1-slots') &&
+                    !slotContainer.closest('#bag2-slots') &&
+                    !slotContainer.closest('#bag3-slots')
+                ) {
+                    return;
+                }
+
+                const idInput = slotContainer.querySelector('.item-id-input');
+                const itemId = idInput ? idInput.value.trim() : '';
+
+                // If no item, always normalize quantity to 0.
+                if (!itemId) {
+                    qtyInput.value = 0;
+                    qtyInput.max = 1;
+                    return;
+                }
+
+                const item = getItem(itemId);
+                const maxStack = item ? (item.stack || 1) : 1;
+
+                let rawVal = parseInt(qtyInput.value, 10);
+                if (isNaN(rawVal) || rawVal < 0) {
+                    rawVal = 0;
+                }
+
+                if (rawVal > maxStack) {
+                    qtyInput.value = maxStack;
+                    qtyInput.max = maxStack;
+                    if (typeof showToast === 'function') {
+                        const itemName = item ? item.name : itemId;
+                        showToast(`Max stack for ${itemName} is ${maxStack}.`);
+                    }
+                } else {
+                    qtyInput.value = rawVal;
+                    qtyInput.max = maxStack;
+                }
+            });
+        })();
 
         // --- EVENT LISTENERS ---
         document.getElementById('playerLevel').addEventListener('input', function() {
@@ -2545,6 +2866,15 @@
                         updateSlotDisplay(slotContainer, newItemId, 'Bag');
                         populateBagUI(bagKey, readBagFromUI(bagKey));
                     } else {
+                        // Equipment or inventory slots when active via icon click.
+                        if (slotContainer.closest('#equipmentSlots')) {
+                            // Enforce equipment compatibility for click-to-assign.
+                            if (!isItemAllowedInEquipmentSlot(newItem, slotType)) {
+                                console.info(`Item "${newItemId}" is not valid for equipment slot "${slotType}".`);
+                                deselectActiveSlot();
+                                return;
+                            }
+                        }
                         updateSlotDisplay(slotContainer, newItemId, slotType);
                     }
                     deselectActiveSlot();
@@ -2669,6 +2999,26 @@
 
                 const slotType = getSlotTypeFromContainer(slotContainer);
 
+                // Read current slot item (if any) so we can confirm before overwriting
+                const slotIdInput = slotContainer.querySelector('.item-id-input');
+                const currentItemId = slotIdInput ? slotIdInput.value.trim() : '';
+                const isSameItem = currentItemId && currentItemId.toLowerCase() === itemId.toLowerCase();
+
+                // Helper: confirm overwrite when dropping onto a non-empty, different item
+                function confirmOverwriteIfNeeded(promptContext) {
+                    if (!currentItemId || isSameItem) {
+                        return true;
+                    }
+                    const currentItem = getItem(currentItemId);
+                    const currentName = currentItem ? currentItem.name : currentItemId;
+                    const newItem = getItem(itemId);
+                    const newName = newItem ? newItem.name : itemId;
+                    const ctx = promptContext || 'this';
+                    const message =
+                        `Replace "${currentName}" with "${newName}" in this ${ctx} slot?`;
+                    return window.confirm(message);
+                }
+
                 // (A) Bag-type slot (Bag 2/3 item)
                 const isBagTypeSlot =
                     slotType === 'Bag' &&
@@ -2678,6 +3028,11 @@
                     const newItem = getItem(itemId);
                     if (!newItem || newItem.type !== 'bag') {
                         return; // Ignore invalid bag drops
+                    }
+
+                    // Confirm replacing existing bag if different
+                    if (!confirmOverwriteIfNeeded('bag')) {
+                        return;
                     }
 
                     const bagKey = slotContainer.id.slice(0, 4); // "bag2" or "bag3"
@@ -2719,6 +3074,28 @@
 
                 // (B) Equipment slot: inside #equipmentSlots
                 if (slotContainer.closest('#equipmentSlots')) {
+                    const item = getItem(itemId);
+                    if (!item) {
+                        console.info(`Dropped item "${itemId}" not found in item database; drop ignored.`);
+                        if (typeof showToast === 'function') {
+                            showToast('Unknown item: ' + itemId);
+                        }
+                        return;
+                    }
+
+                    if (!isItemAllowedInEquipmentSlot(item, slotType)) {
+                        console.info(`Item "${itemId}" is not valid for equipment slot "${slotType}"; drop ignored.`);
+                        if (typeof showToast === 'function') {
+                            showToast('This item cannot be equipped in the ' + slotType + ' slot.');
+                        }
+                        return;
+                    }
+
+                    // Confirm overwrite if there is an existing, different item
+                    if (!confirmOverwriteIfNeeded('equipment')) {
+                        return;
+                    }
+
                     updateSlotDisplay(slotContainer, itemId, slotType);
                     return;
                 }
@@ -2729,6 +3106,11 @@
                     slotContainer.closest('#bag2-slots') ||
                     slotContainer.closest('#bag3-slots')
                 ) {
+                    // Confirm overwrite if there is an existing, different item
+                    if (!confirmOverwriteIfNeeded('bag')) {
+                        return;
+                    }
+
                     updateSlotDisplay(slotContainer, itemId, 'Inventory');
                     return;
                 }
