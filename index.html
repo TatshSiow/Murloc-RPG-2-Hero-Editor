@@ -7,41 +7,982 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
     <script defer src="https://va.vercel-scripts.com/v1/script.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Roboto+Condensed:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            background-color: #1a0f0a;
-            font-family: 'Arial Narrow', Arial, sans-serif;
+        :root {
+            --wow-bg-page: #050408;
+            --wow-bg-frame: radial-gradient(circle at top, #151017 0%, #050408 55%, #020107 100%);
+            --wow-bg-panel: rgba(10, 6, 2, 0.96);
+            --wow-bg-panel-soft: rgba(14, 9, 5, 0.9);
+            --wow-bg-subpanel: rgba(5, 3, 2, 0.96);
+            --wow-bg-input: rgba(3, 2, 1, 0.98);
+            --wow-bg-input-alt: rgba(10, 7, 4, 0.98);
+            --wow-bg-button: #261108;
+            --wow-bg-button-hover: #4a2410;
+            --wow-bg-button-active: #140804;
+            --wow-border-gold: #c79a3b;
+            --wow-border-gold-soft: rgba(199, 154, 59, 0.52);
+            --wow-border-iron: #3b3b3b;
+            --wow-border-iron-soft: #252525;
+            --wow-border-panel-inner: rgba(255, 255, 255, 0.045);
+            --wow-border-highlight: #ffea9a;
+            --wow-text-main: #f5e6cc;
+            --wow-text-muted: #b8a48a;
+            --wow-text-soft: #9b8566;
+            --wow-text-danger: #ff4f4f;
+            --wow-text-success: #4fff7b;
+            --wow-accent-gold: #f8d66d;
+            --wow-accent-gold-soft: rgba(248, 214, 109, 0.18);
+            --wow-accent-blue: #2ea3ff;
+            --wow-accent-red: #bf3131;
+            --wow-accent-green: #46c95c;
+            --wow-shadow-soft: 0 0 14px rgba(0, 0, 0, 0.95);
+            --wow-shadow-strong: 0 0 24px rgba(0, 0, 0, 1);
+            --wow-radius-panel: 10px;
+            --wow-radius-inner: 7px;
+            --wow-radius-slot: 6px;
+            --wow-font-heading: 'Cinzel', 'Times New Roman', serif;
+            --wow-font-body: 'Roboto Condensed', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            --wow-rarity-common: #ffffff;
+            --wow-rarity-uncommon: #1eff00;
+            --wow-rarity-rare: #0070dd;
+            --wow-rarity-epic: #a335ee;
+            --wow-rarity-legendary: #ff8000;
         }
+
+        body.wow-page {
+            margin: 0;
+            min-height: 100vh;
+            background: radial-gradient(circle at top, #26120b 0%, #0b0504 40%, #020103 100%);
+            color: var(--wow-text-main);
+            font-family: var(--wow-font-body);
+            letter-spacing: 0.02em;
+        }
+
+        .wow-frame {
+            max-width: 1280px;
+            margin: 32px auto 40px auto;
+            padding: 18px 18px 20px 18px;
+            background: radial-gradient(circle at top, rgba(210, 180, 90, 0.08) 0%, rgba(4, 2, 1, 0.98) 40%, rgba(0, 0, 0, 0.98) 100%);
+            border-radius: 14px;
+            border: 2px solid rgba(0, 0, 0, 0.9);
+            box-shadow:
+                0 0 0 1px rgba(255, 215, 128, 0.08),
+                0 0 24px rgba(0, 0, 0, 1),
+                0 0 64px rgba(0, 0, 0, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .wow-frame::before,
+        .wow-frame::after {
+            content: "";
+            position: absolute;
+            inset: 3px;
+            border-radius: 10px;
+            pointer-events: none;
+        }
+
+        .wow-frame::before {
+            border: 1px solid rgba(248, 214, 109, 0.08);
+            box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.9);
+        }
+
+        .wow-frame::after {
+            border: 1px solid rgba(90, 50, 18, 0.65);
+            mix-blend-mode: screen;
+            opacity: 0.32;
+        }
+
+        .wow-header {
+            position: relative;
+            text-align: center;
+            margin: 4px 0 14px 0;
+            padding-bottom: 6px;
+        }
+
+        .wow-header-title {
+            font-family: var(--wow-font-heading);
+            font-size: 30px;
+            line-height: 1.1;
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
+            color: var(--wow-accent-gold);
+            text-shadow:
+                0 0 6px rgba(0, 0, 0, 1),
+                0 0 14px rgba(0, 0, 0, 1),
+                0 0 18px rgba(180, 120, 40, 0.42);
+        }
+
+        .wow-header-subtitle {
+            margin-top: 4px;
+            font-size: 13px;
+            color: var(--wow-text-soft);
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.9);
+        }
+
+        .wow-header-divider {
+            margin: 10px auto 0 auto;
+            width: 86%;
+            height: 1px;
+            background: linear-gradient(
+                to right,
+                transparent,
+                rgba(248, 214, 109, 0.32),
+                rgba(248, 214, 109, 0.65),
+                rgba(248, 214, 109, 0.32),
+                transparent
+            );
+            box-shadow: 0 0 8px rgba(0, 0, 0, 1);
+        }
+
+        .wow-main {
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            gap: 16px;
+            margin-top: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .wow-main-left,
+        .wow-main-right {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .wow-main-right {
+            align-self: flex-start;
+        }
+
+        .wow-panel {
+            background: var(--wow-bg-panel);
+            border-radius: var(--wow-radius-panel);
+            padding: 10px 10px 9px 10px;
+            border: 1px solid var(--wow-border-gold-soft);
+            box-shadow: var(--wow-shadow-soft);
+            position: relative;
+        }
+
+        .wow-panel::before {
+            content: "";
+            position: absolute;
+            inset: 1px;
+            border-radius: calc(var(--wow-radius-panel) - 1px);
+            border: 1px solid rgba(255, 255, 255, 0.02);
+            pointer-events: none;
+        }
+
+        .wow-subpanel {
+            background: var(--wow-bg-subpanel);
+            border-radius: var(--wow-radius-inner);
+            padding: 7px 8px 7px 8px;
+            border: 1px solid var(--wow-border-iron-soft);
+            box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.9);
+            position: relative;
+        }
+
+        .wow-subpanel::before {
+            content: "";
+            position: absolute;
+            inset: 1px;
+            border-radius: calc(var(--wow-radius-inner) - 1px);
+            border: 1px solid var(--wow-border-panel-inner);
+            pointer-events: none;
+        }
+
+        .wow-panel-title {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin: -2px 0 6px 0;
+            font-family: var(--wow-font-heading);
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--wow-accent-gold);
+            text-shadow: 0 0 8px rgba(0, 0, 0, 1);
+        }
+
+        .wow-panel-title::before,
+        .wow-panel-title::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(
+                to right,
+                transparent,
+                rgba(248, 214, 109, 0.36)
+            );
+            opacity: 0.9;
+        }
+
+        .wow-panel-title::after {
+            background: linear-gradient(
+                to left,
+                transparent,
+                rgba(248, 214, 109, 0.28)
+            );
+        }
+
+        .wow-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--wow-text-muted);
+            margin-bottom: 4px;
+        }
+
+        .wow-input,
+        .wow-select {
+            width: 100%;
+            padding: 5px 7px;
+            font-size: 12px;
+            border-radius: 4px;
+            border: 1px solid var(--wow-border-iron);
+            background: var(--wow-bg-input);
+            color: var(--wow-text-main);
+            outline: none;
+            box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.95);
+            transition: all 0.14s ease-out;
+        }
+
+        .wow-input:focus,
+        .wow-select:focus {
+            border-color: var(--wow-accent-gold);
+            box-shadow:
+                0 0 6px rgba(248, 214, 109, 0.35),
+                inset 0 0 8px rgba(0, 0, 0, 1);
+            background: var(--wow-bg-input-alt);
+        }
+
+        .wow-textarea {
+            width: 100%;
+            min-height: 70px;
+            padding: 6px 7px;
+            font-size: 11px;
+            border-radius: 4px;
+            border: 1px solid var(--wow-border-iron);
+            background: var(--wow-bg-input);
+            color: var(--wow-text-main);
+            outline: none;
+            resize: vertical;
+            font-family: monospace;
+            box-shadow: inset 0 0 8px rgba(0, 0, 0, 1);
+            transition: all 0.14s ease-out;
+        }
+
+        .wow-textarea:focus {
+            border-color: var(--wow-accent-gold);
+            background: var(--wow-bg-input-alt);
+            box-shadow:
+                0 0 8px rgba(248, 214, 109, 0.3),
+                inset 0 0 10px rgba(0, 0, 0, 1);
+        }
+
+        .wow-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            padding: 7px 14px;
+            border-radius: 6px;
+            border: 1px solid var(--wow-border-gold-soft);
+            background: radial-gradient(circle at 20% 0%, rgba(248, 214, 109, 0.06) 0%, var(--wow-bg-button) 40%, #120703 100%);
+            color: var(--wow-accent-gold);
+            font-family: var(--wow-font-heading);
+            font-size: 14px;
+            letter-spacing: 0.11em;
+            text-transform: uppercase;
+            text-shadow: 0 0 5px rgba(0, 0, 0, 1);
+            box-shadow:
+                0 0 8px rgba(0, 0, 0, 1),
+                inset 0 0 6px rgba(0, 0, 0, 1);
+            cursor: pointer;
+            transition: all 0.14s ease-out;
+        }
+
+        .wow-button:hover {
+            background: radial-gradient(circle at 20% 0%, rgba(248, 214, 109, 0.14) 0%, var(--wow-bg-button-hover) 40%, #1b0c05 100%);
+            box-shadow:
+                0 0 14px rgba(0, 0, 0, 1),
+                0 0 16px rgba(248, 214, 109, 0.16);
+            transform: translateY(-1px);
+        }
+
+        .wow-button:active {
+            background: var(--wow-bg-button-active);
+            box-shadow:
+                0 0 10px rgba(0, 0, 0, 1),
+                inset 0 0 10px rgba(0, 0, 0, 1);
+            transform: translateY(1px);
+        }
+
+        .wow-button-primary {
+            background: radial-gradient(circle at 18% 0%, rgba(255, 240, 180, 0.14) 0%, #3a160b 32%, #200804 100%);
+            border-color: var(--wow-border-highlight);
+            color: var(--wow-accent-gold);
+        }
+
+        .wow-button-primary:hover {
+            background: radial-gradient(circle at 18% 0%, rgba(255, 240, 180, 0.24) 0%, #4e1d0e 32%, #260a05 100%);
+        }
+
+        .wow-button-secondary {
+            background: radial-gradient(circle at 18% 0%, rgba(188, 240, 255, 0.12) 0%, #0f2b18 34%, #040906 100%);
+            border-color: #6bd492;
+            color: #9df3bd;
+        }
+
+        .wow-button-secondary:hover {
+            background: radial-gradient(circle at 18% 0%, rgba(188, 240, 255, 0.18) 0%, #174227 34%, #050b07 100%);
+            box-shadow:
+                0 0 14px rgba(0, 0, 0, 1),
+                0 0 14px rgba(159, 243, 189, 0.18);
+        }
+
+        .hero-summary {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 10px;
+            align-items: center;
+            padding: 7px 8px 6px 8px;
+            background: linear-gradient(
+                    to bottom,
+                    rgba(248, 214, 109, 0.04),
+                    transparent
+                ),
+                var(--wow-bg-panel-soft);
+            border-radius: var(--wow-radius-panel);
+            border: 1px solid rgba(248, 214, 109, 0.2);
+            box-shadow:
+                0 0 8px rgba(0, 0, 0, 1),
+                inset 0 0 10px rgba(0, 0, 0, 0.98);
+            margin-bottom: 2px;
+        }
+
+        .hero-banner-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: var(--wow-text-soft);
+            margin-top: 2px;
+        }
+
+        .hero-pill,
+        .hero-class-pill,
+        .hero-level-pill,
+        .hero-xp-pill,
+        .hero-location-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 2px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(199, 154, 59, 0.38);
+            background: radial-gradient(circle at 20% 0%, rgba(248, 214, 109, 0.10), rgba(8, 4, 2, 1));
+            box-shadow: 0 0 5px rgba(0, 0, 0, 1);
+            color: var(--wow-accent-gold);
+            white-space: nowrap;
+            font-size: 11px;
+        }
+
+        .hero-pill-label {
+            text-transform: uppercase;
+            letter-spacing: 0.11em;
+            font-size: 9px;
+            color: var(--wow-text-soft);
+        }
+
+        .hero-pill-value {
+            color: var(--wow-accent-gold);
+        }
+
+        .hero-xp-pill input {
+            width: 72px;
+            padding: 0;
+            border: none;
+            background: transparent;
+            color: var(--wow-accent-gold);
+            font-size: 10px;
+            text-align: right;
+            outline: none;
+        }
+
+        .hero-location-pill span {
+            color: var(--wow-accent-gold);
+        }
+
+        .hero-location-pill-label {
+            text-transform: uppercase;
+            letter-spacing: 0.11em;
+            font-size: 8px;
+            color: var(--wow-text-soft);
+        }
+
+        #currentZone {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+            height: 0;
+            width: 0;
+        }
+
+        .hero-level-wrapper {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            margin-right: 4px;
+            color: var(--wow-accent-gold);
+        }
+
+        .hero-level-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            padding: 1px 7px;
+            border-radius: 999px;
+            border: 1px solid rgba(199, 154, 59, 0.32);
+            background: radial-gradient(circle at 20% 0%, rgba(248, 214, 109, 0.08), rgba(8, 4, 2, 1));
+            box-shadow: 0 0 4px rgba(0, 0, 0, 1);
+            color: var(--wow-accent-gold);
+            white-space: nowrap;
+        }
+
+        .hero-level-prefix {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--wow-accent-gold);
+        }
+
+        .hero-level-input {
+            width: 40px;
+            padding: 0;
+            border: none;
+            background: transparent;
+            color: var(--wow-accent-gold);
+            font-size: 11px;
+            text-align: right;
+            outline: none;
+        }
+
+        .hero-level-input::-webkit-outer-spin-button,
+        .hero-level-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .hero-level-input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        .hero-xp-wrapper {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 2px;
+            padding: 1px 6px;
+            border-radius: 999px;
+            border: 1px solid rgba(199, 154, 59, 0.32);
+            background: radial-gradient(circle at 20% 0%, rgba(248, 214, 109, 0.06), rgba(5, 3, 2, 1));
+            box-shadow: 0 0 3px rgba(0, 0, 0, 1);
+            font-size: 9px;
+            color: var(--wow-text-muted);
+        }
+
+        .hero-xp-label {
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            font-size: 8px;
+            color: var(--wow-text-soft);
+        }
+
+        .hero-xp-input {
+            width: 68px;
+            padding: 0;
+            border: none;
+            background: transparent;
+            color: var(--wow-accent-gold);
+            font-size: 10px;
+            text-align: right;
+            outline: none;
+        }
+
+        .hero-xp-input::-webkit-outer-spin-button,
+        .hero-xp-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .hero-xp-input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        .hero-gold-wrapper {
+            display: inline-flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 2px;
+            padding: 1px 6px;
+            border-radius: 999px;
+            border: 1px solid rgba(199, 154, 59, 0.32);
+            background: radial-gradient(circle at 10% 0%, rgba(248, 214, 109, 0.08), rgba(5, 3, 2, 1));
+            box-shadow: 0 0 3px rgba(0, 0, 0, 1);
+            font-size: 9px;
+            color: var(--wow-text-soft);
+        }
+
+        .hero-gold-label {
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            font-size: 8px;
+            color: var(--wow-text-soft);
+            margin-right: 2px;
+        }
+
+        .hero-gold-field {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .hero-gold-input,
+        .hero-silver-input,
+        .hero-copper-input {
+            width: 26px;
+            padding: 0;
+            border: none;
+            background: transparent;
+            color: var(--wow-accent-gold);
+            font-size: 9px;
+            text-align: right;
+            outline: none;
+        }
+
+        .hero-gold-input::-webkit-outer-spin-button,
+        .hero-gold-input::-webkit-inner-spin-button,
+        .hero-silver-input::-webkit-outer-spin-button,
+        .hero-silver-input::-webkit-inner-spin-button,
+        .hero-copper-input::-webkit-outer-spin-button,
+        .hero-copper-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .hero-gold-input[type=number],
+        .hero-silver-input[type=number],
+        .hero-copper-input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        .hero-gold-wrapper .coin {
+            width: 0.9em;
+            height: 0.9em;
+            margin-left: 0;
+        }
+
+        .hero-banner-row .hero-level-input {
+            width: 40px;
+            padding: 0;
+            font-size: 11px;
+            border: none;
+            border-radius: 0;
+            background: transparent;
+            color: var(--wow-accent-gold);
+            text-align: right;
+            box-shadow: none;
+            outline: none;
+        }
+
+        .hero-banner-pill {
+            padding: 1px 7px;
+            border-radius: 999px;
+            border: 1px solid rgba(199, 154, 59, 0.32);
+            background: radial-gradient(circle at 20% 0%, rgba(248, 214, 109, 0.08), rgba(8, 4, 2, 1));
+            box-shadow: 0 0 4px rgba(0, 0, 0, 1);
+            color: var(--wow-accent-gold);
+            white-space: nowrap;
+        }
+
+        .hero-portrait {
+            width: 60px;
+            height: 60px;
+            border-radius: 6px;
+            background:
+                radial-gradient(circle at 10% 0%, rgba(248, 214, 109, 0.18), transparent),
+                url('https://wow.zamimg.com/uploads/screenshots/normal/55215.jpg') center center / cover no-repeat;
+            border: 2px solid var(--wow-border-gold);
+            box-shadow:
+                0 0 10px rgba(0, 0, 0, 1),
+                0 0 10px rgba(248, 214, 109, 0.18);
+        }
+
+        .hero-text-block {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+
+        .hero-name {
+            font-family: var(--wow-font-heading);
+            font-size: 16px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--wow-accent-gold);
+            text-shadow:
+                0 0 6px rgba(0, 0, 0, 1),
+                0 0 14px rgba(0, 0, 0, 1);
+        }
+
+        .hero-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            font-size: 10px;
+            color: var(--wow-text-soft);
+        }
+
+        .hero-meta span {
+            padding: 1px 5px;
+            border-radius: 999px;
+            border: 1px solid rgba(199, 154, 59, 0.3);
+            background: radial-gradient(circle at 20% 0%, rgba(248, 214, 109, 0.08), rgba(8, 4, 2, 1));
+            box-shadow: 0 0 4px rgba(0, 0, 0, 1);
+        }
+
+        .hero-summary-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 2px;
+            font-size: 9px;
+            color: var(--wow-text-muted);
+        }
+
+        .hero-summary-stats span {
+            color: var(--wow-accent-gold);
+        }
+
+        .stats-panel,
+        .quests-panel,
+        .equipment-panel,
+        .inventory-panel,
+        .codex-panel {
+            margin-top: 2px;
+        }
+
+        .equipment-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .wow-slot {
+            position: relative;
+            padding: 4px 5px;
+            border-radius: var(--wow-radius-slot);
+            border: 1px solid var(--wow-border-iron-soft);
+            background: radial-gradient(circle at 0 0, rgba(248, 214, 109, 0.06), rgba(5, 3, 2, 1));
+            box-shadow:
+                inset 0 0 8px rgba(0, 0, 0, 1),
+                0 0 6px rgba(0, 0, 0, 0.9);
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .slot-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+            background: radial-gradient(circle at 16% 0%, rgba(248, 214, 109, 0.06), rgba(0, 0, 0, 1));
+            border: 1px solid var(--wow-border-iron);
+            box-shadow:
+                0 0 5px rgba(0, 0, 0, 1),
+                inset 0 0 6px rgba(0, 0, 0, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .slot-name {
+            font-size: 10px;
+            line-height: 1.2;
+            color: var(--wow-text-main);
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+
+        .slot-input {
+            width: 100%;
+            margin-top: 2px;
+            font-size: 9px;
+            padding: 2px 4px;
+            border-radius: 3px;
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--wow-text-soft);
+            outline: none;
+        }
+
+        .slot-input:focus {
+            border-color: var(--wow-accent-gold);
+            background: rgba(6, 4, 3, 1);
+            box-shadow: 0 0 6px rgba(0, 0, 0, 1);
+        }
+
+        .slot-qty {
+            width: 26px;
+            font-size: 9px;
+            padding: 2px 3px;
+            border-radius: 3px;
+            background: rgba(6, 3, 2, 1);
+            border: 1px solid var(--wow-border-iron);
+            color: var(--wow-accent-gold);
+            text-align: right;
+            outline: none;
+            box-shadow: inset 0 0 6px rgba(0, 0, 0, 1);
+        }
+
+        .inventory-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .bag-panel {
+            margin-top: 3px;
+        }
+
+        .codex-panel {
+            position: sticky;
+            top: 8px;
+        }
+
+        .codex-list {
+            max-height: 65vh;
+            overflow-y: auto;
+            padding: 4px;
+            border-radius: var(--wow-radius-inner);
+            background: var(--wow-bg-subpanel);
+            border: 1px solid var(--wow-border-iron-soft);
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 1);
+        }
+
+        .codex-list::-webkit-scrollbar {
+            width: 7px;
+        }
+
+        .codex-list::-webkit-scrollbar-track {
+            background: rgba(5, 3, 1, 0.98);
+        }
+
+        .codex-list::-webkit-scrollbar-thumb {
+            background: rgba(111, 78, 40, 0.85);
+            border-radius: 10px;
+        }
+
+        .codex-list::-webkit-scrollbar-thumb:hover {
+            background: var(--wow-accent-gold);
+        }
+
+        .codex-item {
+            display: block;
+            padding: 3px 5px;
+            border-radius: 3px;
+            font-size: 10px;
+            color: var(--wow-text-main);
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.12s ease-out;
+        }
+
+        .codex-item:hover {
+            background: rgba(248, 214, 109, 0.08);
+            box-shadow: 0 0 6px rgba(0, 0, 0, 1);
+            transform: translateX(1px);
+        }
+
+        .wow-tooltip {
+            position: absolute;
+            z-index: 100;
+            padding: 7px 8px;
+            border-radius: 6px;
+            background: radial-gradient(circle at top, rgba(43, 27, 10, 1), #050307);
+            border: 1px solid rgba(248, 214, 109, 0.52);
+            box-shadow:
+                0 0 14px rgba(0, 0, 0, 1),
+                0 0 24px rgba(0, 0, 0, 1);
+            color: var(--wow-text-main);
+            pointer-events: none;
+            max-width: 260px;
+            font-size: 10px;
+        }
+
+        .wow-tooltip .quality-common { color: var(--wow-rarity-common); }
+        .wow-tooltip .quality-uncommon { color: var(--wow-rarity-uncommon); }
+        .wow-tooltip .quality-rare { color: var(--wow-rarity-rare); }
+        .wow-tooltip .quality-epic { color: var(--wow-rarity-epic); }
+        .wow-tooltip .quality-legendary { color: var(--wow-rarity-legendary); }
+
+        .wow-tabs {
+            display: inline-flex;
+            gap: 4px;
+            padding: 2px;
+            border-radius: 999px;
+            background: rgba(5, 3, 1, 0.98);
+            border: 1px solid rgba(248, 214, 109, 0.22);
+            box-shadow: 0 0 8px rgba(0, 0, 0, 1);
+        }
+
+        .wow-tab {
+            padding: 2px 8px 3px 8px;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.11em;
+            border-radius: 999px;
+            color: var(--wow-text-soft);
+            cursor: default;
+        }
+
+        .wow-tab-active {
+            background: radial-gradient(circle at 20% 0%, rgba(248, 214, 109, 0.24), rgba(24, 10, 4, 1));
+            color: var(--wow-accent-gold);
+            box-shadow:
+                0 0 10px rgba(0, 0, 0, 1),
+                0 0 14px rgba(248, 214, 109, 0.25);
+        }
+
+        .achievement-glow {
+            box-shadow:
+                0 0 18px rgba(248, 214, 109, 0.55),
+                0 0 32px rgba(0, 0, 0, 1);
+            border-color: var(--wow-border-highlight) !important;
+        }
+
+        .achievement-title-lit {
+            color: #ffe9a3 !important;
+            text-shadow:
+                0 0 8px rgba(0, 0, 0, 1),
+                0 0 18px rgba(248, 214, 109, 0.9),
+                0 0 26px rgba(255, 255, 255, 0.22);
+        }
+
+        .achievement-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .achievement-card {
+            position: relative;
+            padding: 5px 6px 16px 6px;
+            border-radius: 8px;
+            border: 1px solid rgba(110, 88, 52, 0.7);
+            background: radial-gradient(circle at 20% 0%, rgba(248, 214, 109, 0.05), rgba(6, 4, 2, 1));
+            box-shadow: inset 0 0 6px rgba(0, 0, 0, 1);
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            font-size: 8px;
+            color: var(--wow-text-soft);
+            opacity: 0.5;
+            filter: grayscale(1);
+            transition: all 0.18s ease-out;
+        }
+
+        .achievement-card-title {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.09em;
+            color: var(--wow-text-muted);
+        }
+
+        .achievement-card-desc {
+            font-size: 9px;
+            color: var(--wow-text-soft);
+        }
+
+        .achievement-card-icon {
+            position: absolute;
+            bottom: 4px;
+            right: 5px;
+            width: 18px;
+            height: 18px;
+            opacity: 0.8;
+        }
+
+        .achievement-card-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
+        .achievement-card-earned {
+            opacity: 1;
+            filter: none;
+            border-color: rgba(248, 214, 109, 0.85);
+            box-shadow:
+                0 0 10px rgba(248, 214, 109, 0.45),
+                0 0 16px rgba(0, 0, 0, 1);
+        }
+
+        .achievement-card-earned .achievement-card-title {
+            color: #ffe9a3;
+            text-shadow:
+                0 0 6px rgba(0, 0, 0, 1),
+                0 0 10px rgba(248, 214, 109, 0.5);
+        }
+
+        .achievement-card-earned .achievement-card-desc {
+            color: #fffbde;
+        }
+
         .success-msg {
             opacity: 0;
             transition: opacity 1s ease-in-out;
         }
+
         .success-msg.show {
             opacity: 1;
         }
+
         input::-webkit-outer-spin-button,
         input::-webkit-inner-spin-button {
           -webkit-appearance: none;
           margin: 0;
         }
+
         input[type=number] {
           -moz-appearance: textfield;
         }
-        #tooltip {
-            z-index: 100;
-            pointer-events: none;
-        }
-        .quality-common { color: #ffffff; }
-        .quality-uncommon { color: #1eff00; }
-        .quality-rare { color: #0070dd; }
-        .quality-epic { color: #a335ee; }
-        .quality-legendary { color: #ff8000; }
-        /* Style the select box text color based on selected quality */
-        select#filterQuality.quality-common { color: #ffffff; }
-        select#filterQuality.quality-uncommon { color: #1eff00; }
-        select#filterQuality.quality-rare { color: #0070dd; }
-        select#filterQuality.quality-epic { color: #a335ee; }
-        select#filterQuality.quality-legendary { color: #ff8000; }
+
+        .quality-common { color: var(--wow-rarity-common); }
+        .quality-uncommon { color: var(--wow-rarity-uncommon); }
+        .quality-rare { color: var(--wow-rarity-rare); }
+        .quality-epic { color: var(--wow-rarity-epic); }
+        .quality-legendary { color: var(--wow-rarity-legendary); }
+
+        select#filterQuality.quality-common { color: var(--wow-rarity-common); }
+        select#filterQuality.quality-uncommon { color: var(--wow-rarity-uncommon); }
+        select#filterQuality.quality-rare { color: var(--wow-rarity-rare); }
+        select#filterQuality.quality-epic { color: var(--wow-rarity-epic); }
+        select#filterQuality.quality-legendary { color: var(--wow-rarity-legendary); }
+
         .coin {
             width: 1.25em;
             height: 1.25em;
@@ -49,24 +990,30 @@
             margin-left: 2px;
             flex-shrink: 0;
         }
+
         #itemList::-webkit-scrollbar {
             width: 8px;
         }
+
         #itemList::-webkit-scrollbar-track {
             background: rgba(10,5,2,0.8);
             border-radius: 10px;
         }
+
         #itemList::-webkit-scrollbar-thumb {
             background: #4d2c1a;
             border-radius: 10px;
         }
+
         #itemList::-webkit-scrollbar-thumb:hover {
             background: #ffa500;
         }
+
         .icon-container.active-slot {
             outline: 2px solid #ffD100;
             box-shadow: 0 0 8px rgba(255, 209, 0, 0.7);
         }
+
         .clear-slot-btn {
             position: absolute;
             top: -0.5rem;
@@ -85,202 +1032,335 @@
             cursor: pointer;
             z-index: 10;
         }
+
         .item-slot-container:hover .clear-slot-btn {
             opacity: 1;
         }
+
+        @media (min-width: 1280px) {
+            .wow-main {
+                grid-template-columns: 3fr 1fr;
+                gap: 18px;
+            }
+            .wow-header-title {
+                font-size: 32px;
+            }
+        }
+
+        @media (min-width: 1024px) and (max-width: 1279px) {
+            .wow-frame {
+                max-width: 1100px;
+                padding: 14px;
+            }
+            .wow-main {
+                grid-template-columns: 2.4fr 1fr;
+                gap: 12px;
+            }
+            .wow-header-title {
+                font-size: 26px;
+            }
+            .wow-header-subtitle {
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .wow-main {
+                grid-template-columns: 1fr;
+            }
+            .wow-main-right {
+                margin-top: 4px;
+            }
+            .wow-frame {
+                margin: 10px auto 16px auto;
+                padding: 10px;
+            }
+            .hero-summary {
+                grid-template-columns: auto 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .hero-name {
+                font-size: 14px;
+            }
+            .wow-header-title {
+                font-size: 22px;
+                letter-spacing: 0.14em;
+            }
+            .wow-panel {
+                padding: 8px;
+            }
+        }
     </style>
 </head>
-<body class="text-amber-50 antialiased tracking-wide">
-    <div class="container mx-auto mt-10 max-w-7xl p-6 md:p-8 bg-stone-900/90 rounded-lg border-2 border-[#4d2c1a] shadow-[0_0_8px_rgba(255,170,0,0.3)]">
-        
-        <h1 class="text-4xl text-center font-bold text-amber-400 mb-2">Murloc RPG 2 Save Scrivener</h1>
-        <p class="text-center text-stone-300 mb-6 text-lg">Present your save scroll or inscribe its contents below.</p>
-        
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+<body class="wow-page antialiased tracking-wide">
+    <div class="wow-frame">
+        <header class="wow-header">
+            <h1 class="wow-header-title">Murloc RPG 2 Save Scrivener</h1>
+            <p class="wow-header-subtitle">Present your save scroll or inscribe its contents below.</p>
+            <div class="wow-header-divider"></div>
+        </header>
+
+        <div class="wow-main">
 
             <!-- Left Column: Main Editor -->
-            <div class="lg:col-span-3">
-                <div class="space-y-6">
-                    <div>
-                        <label for="fileInput" class="block text-xl text-amber-200 mb-2">1. Present Save Scroll (.sav):</label>
-                        <input type="file" id="fileInput" accept=".sav" class="block w-full text-stone-300 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:font-semibold file:bg-stone-600 file:text-amber-200 hover:file:bg-stone-500 cursor-pointer">
+            <div class="wow-main-left">
+                <div class="wow-panel">
+                    <div class="wow-panel-title">Save Scroll</div>
+                    <div class="space-y-3">
+                        <div>
+                            <label for="fileInput" class="wow-label">1. Present Save Scroll (.sav)</label>
+                            <input type="file" id="fileInput" accept=".sav" class="wow-input">
+                        </div>
+                        <div>
+                            <label for="inputJson" class="wow-label">2. Or Inscribe Save Data</label>
+                            <textarea id="inputJson" placeholder="The chronicle of your journey will appear here..." class="wow-textarea h-40"></textarea>
+                        </div>
                     </div>
+                </div>
 
-                    <div>
-                        <label for="inputJson" class="block text-xl text-amber-200 mb-2">2. Or Inscribe Save Data:</label>
-                        <textarea id="inputJson" placeholder="The chronicle of your journey will appear here..." class="w-full h-48 p-3 bg-stone-900/70 border border-stone-600 rounded-md text-stone-200 font-mono text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none"></textarea>
-                    </div>
-                    
-                    <div id="statEditor" class="hidden space-y-6">
-                        <!-- Player Info Section -->
-                        <h2 class="text-2xl text-center font-bold text-amber-400 mt-4 mb-2">Player Info</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="bg-[rgba(30,20,10,0.7)] border border-[#4d2c1a] rounded-md p-4">
-                                <label class="text-amber-200 font-semibold block mb-2">Class</label>
-                                <input type="text" id="playerClass" readonly class="w-full p-2 bg-[rgba(10,5,2,0.8)] border border-stone-700 text-stone-300 rounded cursor-not-allowed">
+                <div id="statEditor" class="hidden space-y-3">
+                    <!-- Hero Summary -->
+                    <div class="wow-panel hero-summary">
+                        <div class="hero-portrait"></div>
+                        <div class="hero-text-block">
+                            <div class="hero-name" id="heroName">The Legendary Hero : Murloc</div>
+
+                            <!-- Hero Banner Row 1: Class (read-only, mirrors ledger) -->
+                            <div class="hero-banner-row hero-banner-row-1">
+                                <div class="hero-pill hero-class-pill">
+                                    <span class="hero-pill-label">Class</span>
+                                    <span class="hero-pill-value hero-class" id="heroClassValue">N/A</span>
+                                </div>
                             </div>
-                            <div class="bg-[rgba(30,20,10,0.7)] border border-[#4d2c1a] rounded-md p-4">
-                                <label class="text-amber-200 font-semibold block mb-2">Current Zone</label>
-                                <input type="text" id="currentZone" readonly class="w-full p-2 bg-[rgba(10,5,2,0.8)] border border-stone-700 text-stone-300 rounded cursor-not-allowed">
+
+                            <!-- Hero Banner Row 2: Level + XP -->
+                            <div class="hero-banner-row hero-banner-row-2">
+                                <div class="hero-pill hero-level-pill">
+                                    <span class="hero-pill-label">Lv.</span>
+                                    <input
+                                        type="number"
+                                        id="playerLevel"
+                                        min="1"
+                                        max="40"
+                                        class="hero-level-input hero-pill-value"
+                                    >
+                                </div>
+                                <div class="hero-pill hero-xp-pill">
+                                    <span class="hero-pill-label">XP</span>
+                                    <input
+                                        type="number"
+                                        id="playerXP"
+                                        min="0"
+                                        max="22400"
+                                        class="hero-xp-input hero-pill-value"
+                                    >
+                                </div>
                             </div>
-                            <div class="bg-[rgba(30,20,10,0.7)] border border-[#4d2c1a] rounded-md p-4 md:col-span-2">
-                                <label class="text-amber-200 font-semibold block mb-2">Money</label>
-                                <div class="grid grid-cols-3 gap-x-4">
-                                    <div class="flex items-center">
-                                        <input type="number" id="playerMoneyGold" min="0" class="w-full p-2 bg-[rgba(25,15,5,0.7)] border border-[#4d2c1a] text-[#ffd100] rounded focus:outline-none focus:border-[#ffa500]" placeholder="Gold">
-                                        <img src="https://wow.zamimg.com/images/icons/money-gold.gif" class="coin ml-2" alt="Gold">
+
+                            <!-- Hero Banner Row 3: Current Zone (display-only, mirrors currentZone) -->
+                            <div class="hero-banner-row hero-banner-row-3">
+                                <div class="hero-pill hero-location-pill">
+                                    <span class="hero-pill-label">Current Zone</span>
+                                    <span class="hero-pill-value" id="heroZoneValue">N/A</span>
+                                </div>
+                                <div class="hero-pill hero-gold-pill">
+                                    <span class="hero-pill-label">Gold</span>
+                                    <div class="hero-pill-value hero-gold-field">
+                                        <input
+                                            type="number"
+                                            id="playerMoneyGold"
+                                            min="0"
+                                            class="hero-gold-input"
+                                        >
+                                        <img src="https://wow.zamimg.com/images/icons/money-gold.gif" class="coin" alt="Gold">
                                     </div>
-                                    <div class="flex items-center">
-                                        <input type="number" id="playerMoneySilver" min="0" max="99" class="w-full p-2 bg-[rgba(25,15,5,0.7)] border border-[#4d2c1a] text-[#ffd100] rounded focus:outline-none focus:border-[#ffa500]" placeholder="Silver">
-                                        <img src="https://wow.zamimg.com/images/icons/money-silver.gif" class="coin ml-2" alt="Silver">
+                                    <div class="hero-pill-value hero-gold-field">
+                                        <input
+                                            type="number"
+                                            id="playerMoneySilver"
+                                            min="0"
+                                            max="99"
+                                            class="hero-silver-input"
+                                        >
+                                        <img src="https://wow.zamimg.com/images/icons/money-silver.gif" class="coin" alt="Silver">
                                     </div>
-                                    <div class="flex items-center">
-                                        <input type="number" id="playerMoneyCopper" min="0" max="99" class="w-full p-2 bg-[rgba(25,15,5,0.7)] border border-[#4d2c1a] text-[#ffd100] rounded focus:outline-none focus:border-[#ffa500]" placeholder="Copper">
-                                        <img src="https://wow.zamimg.com/images/icons/money-copper.gif" class="coin ml-2" alt="Copper">
+                                    <div class="hero-pill-value hero-gold-field">
+                                        <input
+                                            type="number"
+                                            id="playerMoneyCopper"
+                                            min="0"
+                                            max="99"
+                                            class="hero-copper-input"
+                                        >
+                                        <img src="https://wow.zamimg.com/images/icons/money-copper.gif" class="coin" alt="Copper">
                                     </div>
                                 </div>
                             </div>
-                            <div class="bg-[rgba(30,20,10,0.7)] border border-[#4d2c1a] rounded-md p-4">
-                                <label for="playTime" class="text-amber-200 font-semibold block mb-2">Play Time (seconds)</label>
-                                <input type="number" id="playTime" min="0" class="w-full p-2 bg-[rgba(25,15,5,0.7)] border border-[#4d2c1a] text-[#ffd100] rounded focus:outline-none focus:border-[#ffa500] focus:shadow-[0_0_6px_rgba(255,165,0,0.5)]" placeholder="Enter play time in seconds">
+
+                            <!-- Hidden technical field to preserve JS behavior -->
+                            <input
+                                type="text"
+                                id="currentZone"
+                                value="N/A"
+                            >
+
+                            <!-- Gold summary now shown via hero-gold-pill above -->
+                        </div>
+                    </div>
+
+                    <!-- Achievement Panel -->
+                    <div id="achievementPanel" class="wow-panel stats-panel">
+                        <div id="achievementTitle" class="wow-panel-title">Achievement</div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div class="wow-subpanel">
+                                <label for="playTime" class="wow-label">Play Time (seconds)</label>
+                                <input type="number" id="playTime" min="0" class="wow-input" placeholder="Enter play time in seconds">
                             </div>
-                            <div class="bg-[rgba(30,20,10,0.7)] border border-[#4d2c1a] rounded-md p-4">
-                                <label for="playerLevel" class="text-amber-200 font-semibold block mb-2">Level</label>
-                                <input type="number" id="playerLevel" min="1" max="40" class="w-full p-2 bg-[rgba(25,15,5,0.7)] border border-[#4d2c1a] text-[#ffd100] rounded focus:outline-none focus:border-[#ffa500] focus:shadow-[0_0_6px_rgba(255,165,0,0.5)]" placeholder="Enter level">
-                            </div>
-                            <div class="bg-[rgba(30,20,10,0.7)] border border-[#4d2c1a] rounded-md p-4">
-                                <label for="playerXP" class="text-amber-200 font-semibold block mb-2">Experience Points</label>
-                                <input type="number" id="playerXP" min="0" max="22400" class="w-full p-2 bg-[rgba(25,15,5,0.7)] border border-[#4d2c1a] text-[#ffd100] rounded focus:outline-none focus:border-[#ffa500] focus:shadow-[0_0_6px_rgba(255,165,0,0.5)]" placeholder="Enter XP amount">
-                            </div>
-                             <div class="bg-[rgba(30,20,10,0.7)] border border-[#4d2c1a] rounded-md p-4">
-                                <label for="unlockedChests" class="text-amber-200 font-semibold block mb-2">Unlocked Chests</label>
-                                <input type="number" id="unlockedChests" min="0" class="w-full p-2 bg-[rgba(25,15,5,0.7)] border border-[#4d2c1a] text-[#ffd100] rounded focus:outline-none focus:border-[#ffa500] focus:shadow-[0_0_6px_rgba(255,165,0,0.5)]" placeholder="Enter chest value">
+                            <div class="wow-subpanel">
+                                <label for="unlockedChests" class="wow-label">Unlocked Chests</label>
+                                <input type="number" id="unlockedChests" min="0" class="wow-input" placeholder="Enter chest value">
                             </div>
                         </div>
+                        <div id="achievementBadges" class="achievement-grid"></div>
+                    </div>
 
-                        <!-- Abilities & Quests Section -->
-                        <div id="abilitiesQuestsSection" class="space-y-4 pt-4">
-                            <h3 class="text-xl text-center font-bold text-amber-300 mb-2">Abilities & Quests</h3>
-                            <div class="bg-[rgba(30,20,10,0.7)] border border-[#4d2c1a] rounded-md p-4">
-                                <label for="playerAbilities" class="text-amber-200 font-semibold block mb-2">Player Abilities (one per line)</label>
-                                <textarea id="playerAbilities" placeholder="ab_fireball&#x0a;ab_frostbolt" class="w-full h-24 p-2 bg-[rgba(25,15,5,0.7)] border border-[#4d2c1a] text-[#ffd100] rounded focus:outline-none focus:border-[#ffa500] focus:shadow-[0_0_6px_rgba(255,165,0,0.5)] font-mono text-sm"></textarea>
-                            </div>
-                            <div class="bg-[rgba(30,20,10,0.7)] border border-[#4d2c1a] rounded-md p-4">
-                                <label for="activeQuests" class="text-amber-200 font-semibold block mb-2">Active Quests (one per line)</label>
-                                <textarea id="activeQuests" placeholder="quest_crystal_pylons" class="w-full h-24 p-2 bg-[rgba(25,15,5,0.7)] border border-[#4d2c1a] text-[#ffd100] rounded focus:outline-none focus:border-[#ffa500] focus:shadow-[0_0_6px_rgba(255,165,0,0.5)] font-mono text-sm"></textarea>
-                            </div>
-                            <div class="bg-[rgba(30,20,10,0.7)] border border-[#4d2c1a] rounded-md p-4">
-                                <label for="completedQuests" class="text-amber-200 font-semibold block mb-2">Completed Quests (one per line)</label>
-                                <textarea id="completedQuests" placeholder="quest_001&#x0a;quest_gizbo_armor&#x0a;quest_best_defense2" class="w-full h-24 p-2 bg-[rgba(25,15,5,0.7)] border border-[#4d2c1a] text-[#ffd100] rounded focus:outline-none focus:border-[#ffa500] focus:shadow-[0_0_6px_rgba(255,165,0,0.5)] font-mono text-sm"></textarea>
-                            </div>
-                        </div>
+                    <!-- Hidden authoritative class field preserved for JS -->
+                    <input type="text" id="playerClass" readonly class="wow-input cursor-not-allowed hidden">
 
-                        <!-- Equipment Section -->
-                        <div id="equipmentSection" class="space-y-6 pt-4">
-                            <h3 class="text-xl text-center font-bold text-amber-300 mb-2">Equipment</h3>
-                            <div class="bg-yellow-900/30 border border-yellow-700 text-yellow-200 px-4 py-3 rounded-md text-sm">
-                                <strong>Warning:</strong> Modifying equipment with items your class cannot use, or placing items in the wrong slot type, may cause unexpected issues or crashes in the game. Proceed with caution.
+                    <!-- Abilities & Quests Panel -->
+                    <div id="abilitiesQuestsSection" class="wow-panel quests-panel">
+                        <div class="wow-panel-title">Abilities & Quests</div>
+                        <div class="space-y-3">
+                            <div class="wow-subpanel">
+                                <label for="playerAbilities" class="wow-label">Player Abilities (one per line)</label>
+                                <textarea id="playerAbilities" placeholder="ab_fireball&#x0a;ab_frostbolt" class="wow-textarea h-24"></textarea>
                             </div>
-                            <div id="equipmentSlots" class="grid grid-cols-3 gap-x-8">
-                                <!-- Equipment slots will be populated by JS into 3 columns here -->
+                            <div class="wow-subpanel">
+                                <label for="activeQuests" class="wow-label">Active Quests (one per line)</label>
+                                <textarea id="activeQuests" placeholder="quest_crystal_pylons" class="wow-textarea h-24"></textarea>
                             </div>
-                        </div>
-
-                        <!-- Bags Section -->
-                        <div id="bagsSection" class="space-y-6 pt-4">
-                            <h3 class="text-xl text-center font-bold text-amber-300 mb-2">Inventory</h3>
-                            <div id="bag1-container" class="bg-[rgba(30,20,10,0.7)] border border-[#4d2c1a] rounded-md p-4">
-                                <label class="bag-label text-amber-200 font-semibold block mb-3">Bag 1: Backpack (16 Slots)</label>
-                                <div id="bag1-slots" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-3"></div>
-                            </div>
-                            <div id="bag2-container" class="bg-[rgba(30,20,10,0.7)] border border-[#4d2c1a] rounded-md p-4">
-                                <div class="flex items-center mb-3 space-x-3">
-                                    <label class="bag-label text-amber-200 font-semibold">Bag 2:</label>
-                                    <div id="bag2-type-slot" class="item-slot-container relative grid grid-cols-[auto_1fr] items-center gap-x-3 bg-black/20 border border-stone-700 rounded p-1.5 flex-grow">
-                                        <div class="icon-container w-10 h-10 bg-black/30 border-2 border-stone-600 rounded flex items-center justify-center cursor-pointer"></div>
-                                        <div class="info-container flex flex-col justify-center overflow-hidden">
-                                            <div class="item-name-display text-sm truncate"></div>
-                                            <input type="text" class="item-id-input text-xs font-mono text-stone-400 bg-transparent border-none p-0 h-5 focus:ring-1 focus:ring-amber-500 focus:bg-stone-800 rounded" placeholder="item_id...">
-                                        </div>
-                                        <button class="clear-slot-btn" title="Clear Slot">x</button>
-                                    </div>
-                                </div>
-                                <div id="bag2-slots" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-3"></div>
-                            </div>
-                            <div id="bag3-container" class="bg-[rgba(30,20,10,0.7)] border border-[#4d2c1a] rounded-md p-4">
-                                <div class="flex items-center mb-3 space-x-3">
-                                    <label class="bag-label text-amber-200 font-semibold">Bag 3:</label>
-                                     <div id="bag3-type-slot" class="item-slot-container relative grid grid-cols-[auto_1fr] items-center gap-x-3 bg-black/20 border border-stone-700 rounded p-1.5 flex-grow">
-                                        <div class="icon-container w-10 h-10 bg-black/30 border-2 border-stone-600 rounded flex items-center justify-center cursor-pointer"></div>
-                                        <div class="info-container flex flex-col justify-center overflow-hidden">
-                                            <div class="item-name-display text-sm truncate"></div>
-                                            <input type="text" class="item-id-input text-xs font-mono text-stone-400 bg-transparent border-none p-0 h-5 focus:ring-1 focus:ring-amber-500 focus:bg-stone-800 rounded" placeholder="item_id...">
-                                        </div>
-                                        <button class="clear-slot-btn" title="Clear Slot">x</button>
-                                    </div>
-                                </div>
-                                <div id="bag3-slots" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-3"></div>
+                            <div class="wow-subpanel">
+                                <label for="completedQuests" class="wow-label">Completed Quests (one per line)</label>
+                                <textarea id="completedQuests" placeholder="quest_001&#x0a;quest_gizbo_armor&#x0a;quest_best_defense2" class="wow-textarea h-24"></textarea>
                             </div>
                         </div>
                     </div>
 
-                    <button id="calculateButton" class="w-full py-3 text-3xl font-bold bg-[#300] hover:bg-[#500] active:bg-[#200] border-2 border-[#989898] border-r-[#595959] border-b-[#595959] rounded-md text-[#FFD100] shadow-sm transition-colors duration-150">Re-forge Seal</button>
-
-                    <p id="error" class="text-red-400 font-bold text-center text-lg"></p>
-
-                    <div>
-                        <label for="outputJson" class="block text-xl text-amber-200 mb-2">Resealed Save Data:</label>
-                        <textarea id="outputJson" readonly placeholder="Your newly forged chronicle will be revealed here..." class="w-full h-48 p-3 bg-stone-900/70 border border-stone-600 rounded-md text-stone-200 font-mono text-sm"></textarea>
+                    <!-- Equipment Panel -->
+                    <div id="equipmentSection" class="wow-panel equipment-panel">
+                        <div class="wow-panel-title">Equipment</div>
+                        <div class="wow-subpanel mb-2">
+                            <div class="text-xs text-amber-300">
+                                <strong>Warning:</strong> Modifying equipment with invalid items or slots may cause issues in-game. Proceed with caution.
+                            </div>
+                        </div>
+                        <div id="equipmentSlots" class="equipment-grid">
+                            <!-- Equipment slots populated by JS -->
+                        </div>
                     </div>
-                    
-                    <div id="exportSection" class="hidden mt-6 space-y-4">
-                        <div class="flex items-center justify-between">
+
+                    <!-- Inventory / Bags Panel -->
+                    <div id="bagsSection" class="wow-panel inventory-panel">
+                        <div class="wow-panel-title">Bags & Inventory</div>
+
+                        <div id="bag1-container" class="wow-subpanel bag-panel">
+                            <label class="wow-label">Bag 1: Backpack (16 Slots)</label>
+                            <div id="bag1-slots" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-2"></div>
+                        </div>
+
+                        <div id="bag2-container" class="wow-subpanel bag-panel">
+                            <div class="flex items-center mb-2 gap-2">
+                                <label class="wow-label mb-0">Bag 2</label>
+                                <div id="bag2-type-slot" class="item-slot-container wow-slot">
+                                    <div class="icon-container slot-icon"></div>
+                                    <div class="info-container flex flex-col justify-center overflow-hidden">
+                                        <div class="item-name-display slot-name"></div>
+                                        <input type="text" class="item-id-input slot-input" placeholder="item_id...">
+                                    </div>
+                                    <button class="clear-slot-btn" title="Clear Slot">x</button>
+                                </div>
+                            </div>
+                            <div id="bag2-slots" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-2"></div>
+                        </div>
+
+                        <div id="bag3-container" class="wow-subpanel bag-panel">
+                            <div class="flex items-center mb-2 gap-2">
+                                <label class="wow-label mb-0">Bag 3</label>
+                                <div id="bag3-type-slot" class="item-slot-container wow-slot">
+                                    <div class="icon-container slot-icon"></div>
+                                    <div class="info-container flex flex-col justify-center overflow-hidden">
+                                        <div class="item-name-display slot-name"></div>
+                                        <input type="text" class="item-id-input slot-input" placeholder="item_id...">
+                                    </div>
+                                    <button class="clear-slot-btn" title="Clear Slot">x</button>
+                                </div>
+                            </div>
+                            <div id="bag3-slots" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-2"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="calculateButton" class="wow-button wow-button-primary w-full mt-3 text-2xl">Re-forge Seal</button>
+
+                <p id="error" class="text-red-400 font-bold text-center text-sm mt-2"></p>
+
+                <div class="wow-panel mt-2">
+                    <div class="wow-panel-title">Resealed Scroll</div>
+                    <textarea id="outputJson" readonly placeholder="Your newly forged chronicle will be revealed here..." class="wow-textarea h-40"></textarea>
+                </div>
+                
+                <div id="exportSection" class="hidden mt-2">
+                    <div class="wow-panel">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                             <div>
-                                <label for="saveFileName" class="block text-xl text-amber-200 mb-2">Export File Name:</label>
-                                <div class="flex items-center">
-                                    <input type="text" id="saveFileName" value="murloc_save" class="p-2 bg-stone-900/70 border border-stone-600 rounded-md text-stone-200 font-mono text-sm">
-                                    <span class="ml-2 text-stone-400 font-mono">.sav</span>
+                                <label for="saveFileName" class="wow-label">Export File Name</label>
+                                <div class="flex items-center gap-1">
+                                    <input type="text" id="saveFileName" value="murloc_save" class="wow-input w-40">
+                                    <span class="text-stone-400 font-mono text-xs">.sav</span>
                                 </div>
                             </div>
-                            <button id="exportButton" class="px-6 py-3 text-xl font-bold bg-[#006600] hover:bg-[#008800] active:bg-[#004400] border-2 border-[#989898] border-r-[#595959] border-b-[#595959] rounded-md text-[#FFD100] shadow-sm transition-colors duration-150">Capture Scroll</button>
+                            <button id="exportButton" class="wow-button wow-button-secondary md:px-5 md:py-2">Capture Scroll</button>
                         </div>
-                        <p id="successMsg" class="success-msg text-green-400 text-center font-bold">Scroll successfully captured!</p>
+                        <p id="successMsg" class="success-msg text-green-400 text-center font-bold text-xs mt-2">Scroll successfully captured!</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Right Column: Item Dictionary -->
-            <div class="lg:col-span-1">
-                <div class="sticky top-6">
-                    <h2 class="text-xl text-amber-300 font-bold mb-3">Item Codex</h2>
-                    
-                    <div id="codexFilters" class="grid grid-cols-2 gap-2 mb-3">
-                        <select id="filterQuality" class="filter-select w-full p-1.5 bg-stone-900/70 border border-stone-600 rounded-md text-stone-300 text-sm focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none">
+            <!-- Right Column: Item Codex -->
+            <div class="wow-main-right">
+                <div class="wow-panel codex-panel">
+                    <div class="wow-panel-title">Item Codex</div>
+
+                    <div id="codexFilters" class="grid grid-cols-2 gap-2 mb-2">
+                        <select id="filterQuality" class="filter-select wow-select text-xs">
                             <option value="all">All Qualities</option>
                         </select>
-                        <select id="filterType" class="filter-select w-full p-1.5 bg-stone-900/70 border border-stone-600 rounded-md text-stone-300 text-sm focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none">
+                        <select id="filterType" class="filter-select wow-select text-xs">
                             <option value="all">All Types</option>
                         </select>
-                        <select id="filterLoc" class="filter-select w-full p-1.5 bg-stone-900/70 border border-stone-600 rounded-md text-stone-300 text-sm focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none">
+                        <select id="filterLoc" class="filter-select wow-select text-xs">
                             <option value="all">All Slots</option>
                         </select>
-                        <select id="filterMat" class="filter-select w-full p-1.5 bg-stone-900/70 border border-stone-600 rounded-md text-stone-300 text-sm focus:ring-1 focus:ring-amber-500 focus:border-amber-500 outline-none">
+                        <select id="filterMat" class="filter-select wow-select text-xs">
                             <option value="all">All Materials</option>
                         </select>
                     </div>
 
-                    <div class="relative mb-3">
-                        <input type="text" id="itemSearch" placeholder="Search for items..." class="w-full p-2 bg-stone-900/70 border border-stone-600 rounded-md text-stone-200 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none">
+                    <div class="relative mb-2">
+                        <input type="text" id="itemSearch" placeholder="Search for items..." class="wow-input">
                     </div>
-                    <div id="itemList" class="max-h-[65vh] overflow-y-auto bg-stone-900/70 border border-stone-600 rounded-md p-2 space-y-1">
-                        <!-- Item list will be populated by JS -->
+
+                    <div id="itemList" class="codex-list space-y-1">
+                        <!-- Item list populated by JS -->
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="tooltip" class="hidden absolute p-3 rounded-lg bg-stone-900 border-2 border-stone-600 shadow-lg max-w-sm text-sm"></div>
+    <div id="tooltip" class="hidden wow-tooltip"></div>
     <script src="database/item.js"></script>
     <script src="database/effect.js"></script>
     <script>
@@ -816,23 +1896,161 @@
             document.getElementById('tooltip').classList.add('hidden');
         }
 
+        // --- ACHIEVEMENT RENDERING (shared) ---
+        function renderAchievements(playTimeSeconds, unlockedChests) {
+            const achievementPanel = document.getElementById('achievementPanel');
+            const achievementTitle = document.getElementById('achievementTitle');
+            const achievementBadges = document.getElementById('achievementBadges');
+            if (!achievementPanel || !achievementTitle || !achievementBadges) return;
+
+            const playTime = Math.max(0, parseInt(playTimeSeconds, 10) || 0);
+            const unlocked = Math.max(0, parseInt(unlockedChests, 10) || 0);
+
+            achievementPanel.classList.remove('achievement-glow');
+            achievementTitle.classList.remove('achievement-title-lit');
+            achievementBadges.innerHTML = '';
+
+            const achievements = [
+                // Playtime achievements
+                {
+                    id: 'pt5',
+                    label: 'Stay a while and listem',
+                    desc: 'Play for at least 5 minutes.',
+                    earned: playTime >= 5 * 60,
+                    icon: 'https://wow.zamimg.com/images/wow/icons/medium/spell_nature_timestop.jpg'
+                },
+                {
+                    id: 'pt30',
+                    label: 'Rookie Cookie',
+                    desc: 'Play for at least 30 minutes.',
+                    earned: playTime >= 30 * 60,
+                    icon: 'https://wow.zamimg.com/images/wow/icons/medium/inv_misc_food_33.jpg'
+                },
+                {
+                    id: 'pt60',
+                    label: 'Timeless Tidewalker',
+                    desc: 'Play for at least 1 hour.',
+                    earned: playTime >= 60 * 60,
+                    icon: 'https://wow.zamimg.com/images/wow/icons/medium/spell_holy_championsbond.jpg'
+                },
+                {
+                    id: 'pt120',
+                    label: '"Murloc"thon',
+                    desc: 'Play for at least 2 hours.',
+                    earned: playTime >= 120 * 60,
+                    icon: 'https://wow.zamimg.com/images/wow/icons/medium/ability_racial_packhobgoblin.jpg'
+                },
+                {
+                    id: 'pt180',
+                    label: 'No Murloc No Life',
+                    desc: 'Play for at least 3 hours.',
+                    earned: playTime >= 180 * 60,
+                    icon: 'https://wow.zamimg.com/images/wow/icons/medium/inv_pet_babyshark.jpg'
+                },
+
+                // Chest achievements
+                {
+                    id: 'chest1',
+                    label: '"Trash"sure Hunter',
+                    desc: 'Unlock at least 1 chest.',
+                    earned: unlocked >= 1,
+                    icon: 'https://wow.zamimg.com/images/wow/icons/medium/inv_box_01.jpg'
+                },
+                {
+                    id: 'chest10',
+                    label: 'Chest Appreciator',
+                    desc: 'Unlock at least 10 chests.',
+                    earned: unlocked >= 10,
+                    icon: 'https://wow.zamimg.com/images/wow/icons/medium/inv_misc_treasurechest03a.jpg'
+                },
+                {
+                    id: 'chest30',
+                    label: 'Treasure Hunter',
+                    desc: 'Unlock at least 30 chests.',
+                    earned: unlocked >= 30,
+                    icon: 'https://wow.zamimg.com/images/wow/icons/medium/achievement_general_stayclassy.jpg'
+                },
+                {
+                    id: 'chest50',
+                    label: 'Treasure Tsunami',
+                    desc: 'Unlock at least 50 chests.',
+                    earned: unlocked >= 50,
+                    icon: 'https://wow.zamimg.com/images/wow/icons/medium/achievement_bg_overcome500disadvantage.jpg'
+                },
+                {
+                    id: 'chest100',
+                    label: 'Are you playing Fallout?',
+                    desc: 'Unlock at least 100 chests.',
+                    earned: unlocked >= 100,
+                    icon: 'https://wow.zamimg.com/images/wow/icons/medium/inv_misc_gear_01.jpg'
+                }
+            ];
+
+            let anyEarned = false;
+
+            achievements.forEach(a => {
+                const card = document.createElement('div');
+                card.className = 'achievement-card' + (a.earned ? ' achievement-card-earned' : '');
+                card.innerHTML = `
+                    <div class="achievement-card-title">${a.label}</div>
+                    <div class="achievement-card-desc">${a.desc}</div>
+                    <div class="achievement-card-icon">
+                        <img src="${a.icon}" alt="${a.label}">
+                    </div>
+                `;
+                achievementBadges.appendChild(card);
+                if (a.earned) {
+                    anyEarned = true;
+                }
+            });
+
+            if (anyEarned) {
+                achievementPanel.classList.add('achievement-glow');
+                achievementTitle.classList.add('achievement-title-lit');
+            }
+        }
+
         // --- SAVE DATA PROCESSING ---
         function loadSaveData(saveData) {
             document.getElementById('statEditor').classList.remove('hidden');
             
-            document.getElementById('playerClass').value = saveData.playerClass || 'N/A';
-            document.getElementById('currentZone').value = saveData.currentZone || 'N/A';
+            const playerClass = saveData.playerClass || 'N/A';
+            const currentZone = saveData.currentZone || 'N/A';
+
+            // Keep authoritative hidden/technical fields in sync
+            document.getElementById('playerClass').value = playerClass;
+            document.getElementById('currentZone').value = currentZone;
+
+            // Update hero banner display fields
+            const heroClassValueEl = document.getElementById('heroClassValue');
+            if (heroClassValueEl) {
+                heroClassValueEl.textContent = playerClass;
+            }
+
+            const heroZoneValueEl = document.getElementById('heroZoneValue');
+            if (heroZoneValueEl) {
+                heroZoneValueEl.textContent = currentZone;
+            }
 
             const totalCopper = Math.max(0, saveData.playerMoney || 0);
             document.getElementById('playerMoneyGold').value = Math.floor(totalCopper / 10000);
             document.getElementById('playerMoneySilver').value = Math.floor((totalCopper % 10000) / 100);
             document.getElementById('playerMoneyCopper').value = totalCopper % 100;
             
-            document.getElementById('playTime').value = Math.max(0, saveData.playTime || 0);
+            const playTime = Math.max(0, saveData.playTime || 0);
+            document.getElementById('playTime').value = playTime;
+
             const clampedXP = Math.min(22400, Math.max(0, saveData.playerXP || 0));
             document.getElementById('playerXP').value = clampedXP;
             document.getElementById('playerLevel').value = getLevelForXp(clampedXP);
-            document.getElementById('unlockedChests').value = Math.max(0, saveData.unlocked_chests || 0);
+            const unlocked = Math.max(0, saveData.unlocked_chests || 0);
+            document.getElementById('unlockedChests').value = unlocked;
+
+            // Render achievements based on loaded values (seed from current inputs)
+            renderAchievements(
+                document.getElementById('playTime').value,
+                document.getElementById('unlockedChests').value
+            );
 
             const playerAbilitiesEl = document.getElementById('playerAbilities');
             if (saveData.playerAbilities && Array.isArray(saveData.playerAbilities)) {
@@ -871,6 +2089,12 @@
             saveData.playTime = Number(document.getElementById('playTime').value);
             saveData.playerXP = getXpForLevel(parseInt(document.getElementById('playerLevel').value) || 1);
             saveData.unlocked_chests = Number(document.getElementById('unlockedChests').value);
+
+            // Ensure achievements reflect the current input values after applying edits
+            renderAchievements(saveData.playTime, saveData.unlocked_chests);
+
+            // Keep achievements preview in sync when exporting
+            renderAchievements(saveData.playTime, saveData.unlocked_chests);
             
             const playerAbilitiesStr = document.getElementById('playerAbilities').value.trim();
             if (playerAbilitiesStr) {
@@ -911,6 +2135,37 @@
             this.value = Math.min(22400, Math.max(0, parseInt(this.value) || 0));
             document.getElementById('playerLevel').value = getLevelForXp(this.value);
         });
+
+        // Live achievement updates when Achievement inputs change (single source of truth)
+        (function () {
+            const playTimeInput = document.getElementById('playTime');
+            const unlockedChestsInput = document.getElementById('unlockedChests');
+
+            if (!playTimeInput || !unlockedChestsInput) return;
+
+            function syncAchievementsFromInputs() {
+                const pt = Math.max(0, parseInt(playTimeInput.value, 10) || 0);
+                const unlocked = Math.max(0, parseInt(unlockedChestsInput.value, 10) || 0);
+                renderAchievements(pt, unlocked);
+            }
+
+            playTimeInput.addEventListener('input', function () {
+                // clamp then update
+                const pt = Math.max(0, parseInt(this.value, 10) || 0);
+                if (String(pt) !== this.value) this.value = pt;
+                syncAchievementsFromInputs();
+            });
+
+            unlockedChestsInput.addEventListener('input', function () {
+                // clamp then update
+                const unlocked = Math.max(0, parseInt(this.value, 10) || 0);
+                if (String(unlocked) !== this.value) this.value = unlocked;
+                syncAchievementsFromInputs();
+            });
+
+            // Initial render based on current input values
+            syncAchievementsFromInputs();
+        })();
 
         const editorContainer = document.getElementById('statEditor');
 
