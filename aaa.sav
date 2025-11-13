@@ -1,0 +1,504 @@
+{
+    "unlocked_chests": 180,
+    "completedQuests": [
+        "quest_001",
+        "quest_gizbo_armor",
+        "quest_gizbo_goods",
+        "quest_nightwatch",
+        "quest_gizbo_alch",
+        "quest_002",
+        "quest_quillboar_camp",
+        "quest_save_gurgul",
+        "quest_best_defense2"
+    ],
+    "bag1": [
+        "backpack",
+        [
+            "item_healherb",
+            4
+        ],
+        [
+            "item_cheese",
+            1
+        ],
+        [
+            "item_giantegg",
+            2
+        ],
+        [
+            "item_thistletea",
+            1
+        ],
+        [
+            "item_pumpkin",
+            20
+        ],
+        [
+            "item_brandy",
+            14
+        ],
+        [
+            "item_gear",
+            1
+        ],
+        [
+            "item_lesserhealpot",
+            6
+        ],
+        [
+            "item_linen",
+            20
+        ],
+        [
+            "item_pumpkin",
+            3
+        ],
+        [
+            "item_linen",
+            8
+        ],
+        [
+            "item_brokenbottle",
+            1
+        ],
+        [
+            "item_augcboots",
+            1
+        ],
+        [
+            "item_shellcracker",
+            1
+        ],
+        [
+            "item_augcvest",
+            1
+        ],
+        [
+            "item_primalcape",
+            1
+        ]
+    ],
+    "hash": "2611c63453ea129c564b2b1fe3ac7781",
+    "bag2": [
+        "item_newbag",
+        [
+            "item_lknapsack",
+            1
+        ],
+        [
+            "item_warbringer",
+            1
+        ],
+        [
+            "item_andonisus",
+            1
+        ],
+        [
+            "item_greed",
+            1
+        ],
+        [
+            "item_sulfuras",
+            1
+        ],
+        [
+            "item_frogband",
+            1
+        ],
+        [
+            "item_lifestone",
+            1
+        ],
+        [
+            "empty",
+            0
+        ],
+        [
+            "empty",
+            0
+        ],
+        [
+            "empty",
+            0
+        ],
+        [
+            "empty",
+            0
+        ],
+        [
+            "empty",
+            0
+        ],
+        [
+            "empty",
+            0
+        ],
+        [
+            "empty",
+            0
+        ],
+        [
+            "empty",
+            0
+        ],
+        [
+            "empty",
+            0
+        ],
+        [
+            "empty",
+            0
+        ],
+        [
+            "empty",
+            0
+        ],
+        [
+            "empty",
+            0
+        ],
+        [
+            "item_moonbag",
+            1
+        ]
+    ],
+    "bag3": [
+        "item_newbag",
+        [
+            "item_arcanestaff",
+            1
+        ],
+        [
+            "item_andonisus",
+            1
+        ],
+        [
+            "item_bandvigor",
+            1
+        ],
+        [
+            "item_bloodfring",
+            1
+        ],
+        [
+            "item_drakehead",
+            1
+        ],
+        [
+            "item_cookiemallet",
+            1
+        ],
+        [
+            "item_gloamband",
+            1
+        ],
+        [
+            "item_everstillbplate",
+            1
+        ],
+        [
+            "item_raidlegguards",
+            1
+        ],
+        [
+            "item_raidchestpiece",
+            1
+        ],
+        [
+            "item_2sledge",
+            1
+        ],
+        [
+            "item_newbag",
+            1
+        ],
+        [
+            "empty",
+            0
+        ],
+        [
+            "item_warbringer",
+            1
+        ],
+        [
+            "item_ringprec",
+            1
+        ],
+        [
+            "item_bandfstrength",
+            1
+        ],
+        [
+            "empty",
+            0
+        ],
+        [
+            "empty",
+            0
+        ],
+        [
+            "empty",
+            0
+        ],
+        [
+            "item_arcanebomb",
+            99
+        ]
+    ],
+    "actionbar1": [
+        null,
+        [
+            "abil_backstab",
+            "ability"
+        ],
+        [
+            "abil_ambush",
+            "ability"
+        ],
+        [
+            "abil_picklock",
+            "ability"
+        ],
+        [
+            "abil_pickpocket",
+            "ability"
+        ],
+        [
+            "abil_attack",
+            "ability"
+        ],
+        [
+            "abil_garrote",
+            "ability"
+        ]
+    ],
+    "_version": 1,
+    "actionbar2": [
+        null,
+        [
+            "abil_pickpocket",
+            "ability"
+        ],
+        [
+            "abil_picklock",
+            "ability"
+        ],
+        [
+            "abil_recuperate",
+            "ability"
+        ],
+        [
+            "abil_coldblood",
+            "ability"
+        ],
+        [
+            "abil_evasion",
+            "ability"
+        ],
+        [
+            "abil_slicedice",
+            "ability"
+        ]
+    ],
+    "playTime": 12939,
+    "actionbar3": [
+        null,
+        [
+            "abil_ambush",
+            "ability"
+        ],
+        [
+            "abil_kick",
+            "ability"
+        ],
+        [
+            "abil_kidneyshot",
+            "ability"
+        ],
+        [
+            "abil_cheapshot",
+            "ability"
+        ],
+        null,
+        [
+            "abil_adrenrush",
+            "ability"
+        ]
+    ],
+    "playerClass": "Scout",
+    "currentActionbar": 1,
+    "playerMoney": 1094725,
+    "vol_master": 1,
+    "playerXP": 22400,
+    "vol_music": 1,
+    "playerDir": 1,
+    "vol_sfx": 0.5,
+    "playerCurrentHealth": 570,
+    "vol_ambience": 1,
+    "playerCurrentPower": 100,
+    "loop_music": true,
+    "currentZone": "zone_camp_gizbo",
+    "mute_all": false,
+    "currentZoneFrame": 2,
+    "show_fps": true,
+    "currentXPos": 302,
+    "disable_combattext": false,
+    "playerAbilities": [
+        "abil_attack",
+        "abil_sinstrike",
+        "abil_slicedice",
+        "abil_kick",
+        "abil_backstab",
+        "abil_pickpocket",
+        "abil_picklock",
+        "abil_coldblood",
+        "abil_cheapshot",
+        "abil_evasion",
+        "abil_recuperate",
+        "abil_garrote",
+        "abil_ambush",
+        "abil_kidneyshot",
+        "abil_adrenrush"
+    ],
+    "default_autoloot": true,
+    "playerEquipment": [
+        "item_blackcutlass",
+        "item_reinforcedlcap",
+        "item_scoutmedallion",
+        "item_feralshoulders",
+        "item_nubcloak",
+        "item_bardtunic",
+        "item_bardbracers",
+        "item_bardgloves",
+        "item_bardbelt",
+        "item_bardtrousers",
+        "item_bardboots",
+        "item_frogband",
+        "item_gizbocrest"
+    ],
+    "fx_screenshake": true,
+    "playerEffects": [
+        [
+            "eff_ringprec",
+            0
+        ],
+        [
+            "eff_blackcutlass",
+            0
+        ]
+    ],
+    "fx_environment": true,
+    "playerCooldowns": [],
+    "fx_battle": true,
+    "activeQuests": [
+        "quest_003"
+    ],
+    "keyBind": [
+        [
+            "Move Left",
+            65,
+            37
+        ],
+        [
+            "Move Right",
+            68,
+            39
+        ],
+        [
+            "Auto-Loot/Shop Stack",
+            16,
+            null
+        ],
+        [
+            "Action Button 1",
+            49,
+            null
+        ],
+        [
+            "Action Button 2",
+            50,
+            null
+        ],
+        [
+            "Action Button 3",
+            51,
+            null
+        ],
+        [
+            "Action Button 4",
+            52,
+            null
+        ],
+        [
+            "Action Button 5",
+            53,
+            null
+        ],
+        [
+            "Action Button 6",
+            54,
+            null
+        ],
+        [
+            "Action Page 1",
+            112,
+            null
+        ],
+        [
+            "Action Page 2",
+            113,
+            null
+        ],
+        [
+            "Action Page 3",
+            114,
+            null
+        ],
+        [
+            "Next Action Bar",
+            33,
+            null
+        ],
+        [
+            "Previous Action Bar",
+            34,
+            null
+        ],
+        [
+            "Toggle Character Pane",
+            67,
+            null
+        ],
+        [
+            "Toggle Backpack",
+            66,
+            null
+        ],
+        [
+            "Toggle Bag 1",
+            119,
+            null
+        ],
+        [
+            "Toggle Bag 2",
+            118,
+            null
+        ],
+        [
+            "Toggle Spellbook",
+            80,
+            null
+        ],
+        [
+            "Toggle Quest Log",
+            76,
+            null
+        ],
+        [
+            "Toggle Game Menu",
+            115,
+            null
+        ]
+    ],
+    "activeQuestKills": {}
+}
