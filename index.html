@@ -1049,6 +1049,13 @@
             opacity: 1;
         }
 
+        .drop-target-hover {
+            outline: 2px solid var(--wow-accent-gold);
+            box-shadow:
+                0 0 8px rgba(248, 214, 109, 0.5),
+                0 0 14px rgba(0, 0, 0, 1);
+        }
+
         @media (min-width: 1280px) {
             .wow-main {
                 grid-template-columns: 3fr 1fr;
@@ -1928,7 +1935,7 @@
                 // Playtime achievements
                 {
                     id: 'pt5',
-                    label: 'Stay a while and listem',
+                    label: 'Stay a while and listen',
                     desc: 'Play for at least 5 minutes.',
                     earned: playTime >= 5 * 60,
                     icon: 'https://wow.zamimg.com/images/wow/icons/medium/spell_nature_timestop.jpg'
@@ -2490,37 +2497,32 @@
                 if (activeSlotDisplay) {
                     const newItemId = target.dataset.itemId;
                     const newItem = getItem(newItemId);
-                    
+
                     const slotContainer = activeSlotDisplay.closest('.item-slot-container');
-                    if (!slotContainer) { 
+                    if (!slotContainer) {
                         deselectActiveSlot();
-                        return; 
+                        return;
                     }
 
                     const slotType = getSlotTypeFromContainer(slotContainer);
                     const isBagTypeSlot = slotType === 'Bag' && slotContainer.id.includes('-type-slot');
 
                     if (isBagTypeSlot) {
-                        if (newItem.type !== 'bag') {
+                        if (!newItem || newItem.type !== 'bag') {
                             alert('You can only place bags in this slot.');
                             deselectActiveSlot();
                             return;
                         }
-                        
-                        // Get current bag information
+
                         const bagKey = slotContainer.id.slice(0, 4);
                         const currentBagData = readBagFromUI(bagKey);
                         const oldBagItemId = currentBagData[0];
                         const oldBagSlotCount = getBagSlotCount(oldBagItemId);
-                        const newBagSlotCount = newItem.slots || 0;
-                        
-                        // Check if switching to a smaller bag and if there are items that would be lost
+                        const newBagSlotCount = getBagSlotCount(newItem.id);
+
                         if (newBagSlotCount < oldBagSlotCount && oldBagSlotCount > 0) {
-                            // Check if there are items in slots that would be lost
-                            const currentBagSlots = currentBagData.slice(1); // Remove bag item, keep only slot data
+                            const currentBagSlots = currentBagData.slice(1);
                             let hasItemsToLose = false;
-                            
-                            // Check slots beyond the new bag's capacity
                             for (let i = newBagSlotCount; i < currentBagSlots.length; i++) {
                                 const slotData = currentBagSlots[i];
                                 if (slotData && slotData[0] && slotData[0] !== "empty") {
@@ -2528,28 +2530,26 @@
                                     break;
                                 }
                             }
-                            
+
                             if (hasItemsToLose) {
                                 const newBagName = newItem.name || newItemId;
                                 const slotsToLose = oldBagSlotCount - newBagSlotCount;
                                 const message = `Switching to ${newBagName} (${newBagSlotCount} slots) will lose items in ${slotsToLose} slot(s). Items in slots ${newBagSlotCount + 1} to ${oldBagSlotCount} will be lost. Continue?`;
-                                
                                 if (!confirm(message)) {
                                     deselectActiveSlot();
                                     return;
                                 }
                             }
                         }
-                        
-                        // Proceed with the bag change
-                        updateSlotDisplay(slotContainer, newItemId);
+
+                        updateSlotDisplay(slotContainer, newItemId, 'Bag');
                         populateBagUI(bagKey, readBagFromUI(bagKey));
                     } else {
                         updateSlotDisplay(slotContainer, newItemId, slotType);
                     }
                     deselectActiveSlot();
                 } else {
-                     navigator.clipboard.writeText(target.dataset.itemId).then(() => {
+                    navigator.clipboard.writeText(target.dataset.itemId).then(() => {
                         const originalText = target.title;
                         target.textContent = 'Copied!';
                         target.classList.add('text-green-400');
@@ -2583,6 +2583,157 @@
                 tooltip.style.top = `${e.pageY + 15}px`;
             }
         });
+
+        // --- DRAG & DROP FROM ITEM CODEX ---
+        (function initializeCodexDragAndDrop() {
+            // Make codex items draggable (works for initially populated items)
+            function enableCodexDraggable() {
+                const links = itemListEl.querySelectorAll('a[data-item-id]');
+                links.forEach(link => {
+                    link.setAttribute('draggable', 'true');
+                });
+            }
+
+            // Initial call after codex population (itemDB-based)
+            if (itemListEl) {
+                enableCodexDraggable();
+
+                // Re-apply draggable when filters toggle visibility (links remain same nodes)
+                const observer = new MutationObserver(() => enableCodexDraggable());
+                observer.observe(itemListEl, { childList: true, subtree: false });
+            }
+
+            // Codex dragstart / dragend: preserve click behavior
+            itemListEl.addEventListener('dragstart', (event) => {
+                const link = event.target.closest('a[data-item-id]');
+                if (!link || !event.dataTransfer) return;
+                const itemId = link.dataset.itemId;
+                if (!itemId) return;
+
+                event.dataTransfer.setData('text/plain', itemId);
+                event.dataTransfer.setData('application/x-murloc-item-id', itemId);
+                event.dataTransfer.effectAllowed = 'copy';
+            });
+
+            itemListEl.addEventListener('dragend', () => {
+                // No persistent codex drag visuals to clear at present
+            });
+
+            // Global delegated drop-target handling for all .item-slot-container
+            document.addEventListener('dragover', (event) => {
+                const slotContainer = event.target.closest('.item-slot-container');
+                if (!slotContainer || !event.dataTransfer) return;
+
+                const hasItemId =
+                    event.dataTransfer.types.includes('application/x-murloc-item-id') ||
+                    event.dataTransfer.types.includes('text/plain');
+                if (!hasItemId) return;
+
+                event.preventDefault();
+                event.dataTransfer.dropEffect = 'copy';
+
+                slotContainer.classList.add('drop-target-hover');
+            });
+
+            document.addEventListener('dragenter', (event) => {
+                const slotContainer = event.target.closest('.item-slot-container');
+                if (!slotContainer) return;
+                slotContainer.classList.add('drop-target-hover');
+            });
+
+            document.addEventListener('dragleave', (event) => {
+                const slotContainer = event.target.closest('.item-slot-container');
+                if (!slotContainer) return;
+                // Only remove if leaving this slot (not just moving within)
+                if (!slotContainer.contains(event.relatedTarget)) {
+                    slotContainer.classList.remove('drop-target-hover');
+                }
+            });
+
+            document.addEventListener('drop', (event) => {
+                const dataTransfer = event.dataTransfer;
+                if (!dataTransfer) return;
+
+                const itemId =
+                    dataTransfer.getData('application/x-murloc-item-id') ||
+                    dataTransfer.getData('text/plain');
+                if (!itemId) return;
+
+                const slotContainer = event.target.closest('.item-slot-container');
+                if (!slotContainer) return;
+
+                event.preventDefault();
+
+                // Clear hover state
+                slotContainer.classList.remove('drop-target-hover');
+
+                const slotType = getSlotTypeFromContainer(slotContainer);
+
+                // (A) Bag-type slot (Bag 2/3 item)
+                const isBagTypeSlot =
+                    slotType === 'Bag' &&
+                    (slotContainer.id === 'bag2-type-slot' || slotContainer.id === 'bag3-type-slot');
+
+                if (isBagTypeSlot) {
+                    const newItem = getItem(itemId);
+                    if (!newItem || newItem.type !== 'bag') {
+                        return; // Ignore invalid bag drops
+                    }
+
+                    const bagKey = slotContainer.id.slice(0, 4); // "bag2" or "bag3"
+                    const currentBagData = readBagFromUI(bagKey);
+                    const oldBagItemId = currentBagData[0];
+                    const oldBagSlotCount = getBagSlotCount(oldBagItemId);
+                    const newBagSlotCount = getBagSlotCount(newItem.id);
+
+                    if (newBagSlotCount < oldBagSlotCount && oldBagSlotCount > 0) {
+                        const currentBagSlots = currentBagData.slice(1);
+                        let hasItemsToLose = false;
+
+                        for (let i = newBagSlotCount; i < currentBagSlots.length; i++) {
+                            const slotData = currentBagSlots[i];
+                            if (slotData && slotData[0] && slotData[0] !== 'empty') {
+                                hasItemsToLose = true;
+                                break;
+                            }
+                        }
+
+                        if (hasItemsToLose) {
+                            const newBagName = newItem.name || itemId;
+                            const slotsToLose = oldBagSlotCount - newBagSlotCount;
+                            const message =
+                                `Switching to ${newBagName} (${newBagSlotCount} slots) will lose items in ` +
+                                `${slotsToLose} slot(s). Items in slots ${newBagSlotCount + 1} to ` +
+                                `${oldBagSlotCount} will be lost. Continue?`;
+                            if (!confirm(message)) {
+                                return;
+                            }
+                        }
+                    }
+
+                    updateSlotDisplay(slotContainer, itemId, 'Bag');
+                    const updatedBagData = readBagFromUI(bagKey);
+                    populateBagUI(bagKey, updatedBagData);
+                    return;
+                }
+
+                // (B) Equipment slot: inside #equipmentSlots
+                if (slotContainer.closest('#equipmentSlots')) {
+                    updateSlotDisplay(slotContainer, itemId, slotType);
+                    return;
+                }
+
+                // (C) Bag inventory slots: inside bag1/2/3 slots containers
+                if (
+                    slotContainer.closest('#bag1-slots') ||
+                    slotContainer.closest('#bag2-slots') ||
+                    slotContainer.closest('#bag3-slots')
+                ) {
+                    updateSlotDisplay(slotContainer, itemId, 'Inventory');
+                    return;
+                }
+            });
+        })();
     </script>
 </body>
 </html>
