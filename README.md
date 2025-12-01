@@ -1,5 +1,7 @@
+[OG Reddit Post](https://www.reddit.com/r/MurlocRPG/comments/1nfwkxi/murloc_rpg_2_episode_1_hero_editor/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button)
+
 > [!WARNING]
-> ⚠️ Project Status: Early Alpha 🧪
+> ⚠️ Project Status: Alpha 🧪
 
 > [!IMPORTANT]
 > 🔧 Some features or functionality may be incomplete or unstable.  
