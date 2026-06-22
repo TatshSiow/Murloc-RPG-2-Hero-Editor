@@ -1,5 +1,4 @@
-        const effectDBJSON = `
-{
+export const effectDBJSON = `{
   "eff_shieldwall": {
     "pcrit": 0,
     "phit": 0,
@@ -929,7 +928,7 @@
     "spcrit": 0,
     "id": "eff_healwave",
     "sphit": 0,
-        "polymorph": "none",
+    "polymorph": "none",
     "stats": [],
     "rounds": 5,
     "silence": false,

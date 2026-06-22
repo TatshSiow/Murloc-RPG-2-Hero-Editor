@@ -1,4 +1,4 @@
-const itemDBJSON = `{
+export const itemDBJSON = `{
   "item_stomahawk": {
     "slots": 0,
     "quality": "common",
