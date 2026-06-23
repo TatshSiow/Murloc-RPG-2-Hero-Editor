@@ -9,27 +9,34 @@ export function initLegacyApp() {
 // --- DATABASE & DATA TABLES ---
 
         const emptySlotIcons = {
-            'Head': 'https://wow.zamimg.com/images/wow/icons/large/inventoryslot_head.jpg',
-            'Neck': 'https://wow.zamimg.com/images/wow/icons/large/inventoryslot_neck.jpg',
-            'Shoulders': 'https://wow.zamimg.com/images/wow/icons/large/inventoryslot_shoulder.jpg',
-            'Back': 'https://wow.zamimg.com/images/wow/icons/large/inventoryslot_chest.jpg',
-            'Chest': 'https://wow.zamimg.com/images/wow/icons/large/inventoryslot_chest.jpg',
-            'Wrist': 'https://wow.zamimg.com/images/wow/icons/large/inventoryslot_wrists.jpg',
-            'Weapon': 'https://wow.zamimg.com/images/wow/icons/large/inventoryslot_mainhand.jpg',
-            'Gloves': 'https://wow.zamimg.com/images/wow/icons/large/inventoryslot_hands.jpg',
-            'Belt': 'https://wow.zamimg.com/images/wow/icons/large/inventoryslot_waist.jpg',
-            'Legs': 'https://wow.zamimg.com/images/wow/icons/large/inventoryslot_legs.jpg',
-            'Boots': 'https://wow.zamimg.com/images/wow/icons/large/inventoryslot_feet.jpg',
-            'Ring': 'https://wow.zamimg.com/images/wow/icons/large/inventoryslot_finger.jpg',
-            'Trinket': 'https://wow.zamimg.com/images/wow/icons/large/inventoryslot_trinket.jpg',
-            'Bag': 'https://wow.zamimg.com/images/wow/icons/large/inventoryslot_bag.jpg',
-            'Inventory': 'https://wow.zamimg.com/images/wow/icons/large/inventoryslot_empty.jpg'
+            'Weapon': '/murloc-ui/2825.png',
+            'Head': '/murloc-ui/2828.png',
+            'Neck': '/murloc-ui/2831.png',
+            'Shoulders': '/murloc-ui/2834.png',
+            'Back': '/murloc-ui/2837.png',
+            'Chest': '/murloc-ui/2837.png',
+            'Wrist': '/murloc-ui/2841.png',
+            'Gloves': '/murloc-ui/2844.png',
+            'Belt': '/murloc-ui/2847.png',
+            'Legs': '/murloc-ui/2850.png',
+            'Boots': '/murloc-ui/2853.png',
+            'Ring': '/murloc-ui/2856.png',
+            'Trinket': '/murloc-ui/2859.png',
+            'Bag': '/murloc-icons/inv_misc_bag_10.png',
+            'Inventory': '/murloc-icons/icon_empty.png'
         };
 
         const equipmentSlotMap = [
             'Weapon', 'Head', 'Neck', 'Shoulders', 'Back', 'Chest', 
             'Wrist', 'Gloves', 'Belt', 'Legs', 'Boots', 'Ring', 'Trinket'
         ];
+
+        const equipmentSlotDisplayNames = {
+            Gloves: 'Hands',
+            Belt: 'Waist',
+            Boots: 'Feet',
+            Ring: 'Finger'
+        };
 
         let itemDB = {};
         try {
@@ -64,6 +71,28 @@ export function initLegacyApp() {
             console.error("Error parsing embedded ability JSON:", e);
         }
 
+        // ponytail: copied from the game trainer lists; move into data only if trainer editing is added.
+        const classSpellbookAbilityIds = {
+            barbarian: [
+                'abil_attack', 'abil_herostrike', 'abil_rend', 'abil_bloodrage',
+                'abil_pummel', 'abil_battleshout', 'abil_slam', 'abil_shieldwall',
+                'abil_intercept', 'abil_berserkrage', 'abil_execute', 'abil_recklessness',
+                'abil_enragedregen', 'abil_colsmash'
+            ],
+            shaman: [
+                'abil_attack', 'abil_lightbolt', 'abil_healwave', 'abil_curedisease',
+                'abil_elemshield', 'abil_manaspring', 'abil_flameshock', 'abil_healsurge',
+                'abil_curepoison', 'abil_bloodlust', 'abil_ghostwolf', 'abil_frostshock',
+                'abil_hex', 'abil_elemoath', 'abil_ancspirit', 'abil_healrain'
+            ],
+            scout: [
+                'abil_attack', 'abil_sinstrike', 'abil_slicedice', 'abil_kick',
+                'abil_pickpocket', 'abil_backstab', 'abil_picklock', 'abil_coldblood',
+                'abil_cheapshot', 'abil_evasion', 'abil_recuperate', 'abil_garrote',
+                'abil_ambush', 'abil_kidneyshot', 'abil_adrenrush'
+            ]
+        };
+
         let questDB = {};
         try {
             if (questDBJSON && questDBJSON.trim() !== '') {
@@ -74,6 +103,8 @@ export function initLegacyApp() {
         }
 
         const xpToLvl = { 1: 0, 2: 100, 3: 300, 4: 600, 5: 900, 6: 1200, 7: 1600, 8: 2000, 9: 2400, 10: 2800, 11: 3200, 12: 3700, 13: 4200, 14: 4700, 15: 5200, 16: 5700, 17: 6200, 18: 6800, 19: 7400, 20: 8000, 21: 8600, 22: 9200, 23: 9800, 24: 10400, 25: 11100, 26: 11800, 27: 12500, 28: 13200, 29: 13900, 30: 14600, 31: 15300, 32: 16000, 33: 16800, 34: 17600, 35: 18400, 36: 19200, 37: 20000, 38: 20800, 39: 21600, 40: 22400 };
+        const maxGold = 50000;
+        const maxMoneyCopper = maxGold * 100 * 100;
         
         const attributeMap = { str: 'Strength', agi: 'Agility', sta: 'Stamina', int: 'Intellect' };
 
@@ -86,6 +117,16 @@ export function initLegacyApp() {
 
         let activeSlotDisplay = null;
         let currentLoadedSaveData = null;
+        let draggedItemSourceSlot = null;
+        let dragImageEl = null;
+        let dragSourceSeq = 0;
+        let pendingPointerDrag = null;
+        let activePointerDrag = null;
+        let currentPointerDropTarget = null;
+        let suppressNextSlotClick = false;
+        let resetCodexFilterOnSlotDeselect = false;
+
+        setupAppColumns();
 
         // --- EQUIPMENT SLOT VALIDATION ---
 
@@ -172,6 +213,33 @@ export function initLegacyApp() {
             return false;
         }
 
+        function filterCodexForEquipmentSlot(slotType) {
+            const typeFilter = document.getElementById('filterType');
+            const locFilter = document.getElementById('filterLoc');
+            const slot = normalizeEquipmentSlotKey(slotType);
+            if (!typeFilter || !locFilter || !slot) return;
+
+            resetCodexFilterOnSlotDeselect =
+                typeFilter.value === 'all' &&
+                locFilter.value === 'all' &&
+                document.getElementById('filterQuality')?.value === 'all' &&
+                document.getElementById('filterMat')?.value === 'all' &&
+                !document.getElementById('itemSearch')?.value.trim();
+            typeFilter.value = slot === 'weapon' ? 'weapon' : 'all';
+            locFilter.value = slot === 'weapon' ? 'all' : slot;
+            applyFilters();
+        }
+
+        function resetAutoCodexSlotFilter() {
+            if (!resetCodexFilterOnSlotDeselect) return;
+            const typeFilter = document.getElementById('filterType');
+            const locFilter = document.getElementById('filterLoc');
+            if (typeFilter) typeFilter.value = 'all';
+            if (locFilter) locFilter.value = 'all';
+            resetCodexFilterOnSlotDeselect = false;
+            applyFilters();
+        }
+
         // --- CORE HELPER FUNCTIONS ---
         function getEffect(effectId) {
             if (!effectId) return null;
@@ -183,9 +251,26 @@ export function initLegacyApp() {
             return itemDB[itemId.toLowerCase()] || null;
         }
 
+        function getLocalIconUrl(iconName) {
+            return iconName ? `/murloc-icons/${String(iconName).toLowerCase()}.png` : '';
+        }
+
         function getItemStackSize(itemId) {
             const item = getItem(itemId);
             return item ? item.stack || 1 : 1;
+        }
+
+        function setupAppColumns() {
+            const mainWrapper = document.getElementById('wow-main-wrapper');
+            const main = mainWrapper?.querySelector('.wow-main');
+            const codexColumn = main?.querySelector('.wow-main-right');
+            if (!mainWrapper || !main || !codexColumn || document.getElementById('wow-content-shell')) return;
+
+            const shell = document.createElement('div');
+            shell.id = 'wow-content-shell';
+            mainWrapper.before(shell);
+            main.classList.add('editor-body-only');
+            shell.append(mainWrapper, codexColumn);
         }
 
         function getBagSlotCount(itemId) {
@@ -202,9 +287,9 @@ export function initLegacyApp() {
             const copper = copperValue % 100;
             
             let parts = [];
-            if (gold > 0) parts.push(`<span>${gold} <img src="https://wow.zamimg.com/images/icons/money-gold.gif" class="coin inline-block"></span>`);
-            if (silver > 0) parts.push(`<span>${silver} <img src="https://wow.zamimg.com/images/icons/money-silver.gif" class="coin inline-block"></span>`);
-            if (copper > 0) parts.push(`<span>${copper} <img src="https://wow.zamimg.com/images/icons/money-copper.gif" class="coin inline-block"></span>`);
+            if (gold > 0) parts.push(`<span>${gold} <img src="/murloc-ui/money-gold.png" class="coin inline-block"></span>`);
+            if (silver > 0) parts.push(`<span>${silver} <img src="/murloc-ui/money-silver.png" class="coin inline-block"></span>`);
+            if (copper > 0) parts.push(`<span>${copper} <img src="/murloc-ui/money-copper.png" class="coin inline-block"></span>`);
 
             if (parts.length === 0) return '';
             return `<div class="text-stone-300">Sell Price: ${parts.join(' ')}</div>`;
@@ -305,6 +390,50 @@ export function initLegacyApp() {
             picker.addEventListener('drop', event => handleQuestDrop('notStartedQuests', event));
         }
 
+        function arrangeEditorPanels() {
+            const abilitiesPanel = document.getElementById('abilitiesQuestsSection');
+            const heroPanel = document.querySelector('.hero-summary');
+            const bagsPanel = document.getElementById('bagsSection');
+            const achievementPanel = document.getElementById('achievementPanel');
+            if (!abilitiesPanel) return;
+
+            const abilitiesTitle = abilitiesPanel.querySelector('.wow-panel-title');
+            if (abilitiesTitle) abilitiesTitle.textContent = 'Abilities';
+
+            let questsPanel = document.getElementById('questsSection');
+            if (!questsPanel) {
+                questsPanel = document.createElement('div');
+                questsPanel.id = 'questsSection';
+                questsPanel.className = 'wow-panel quests-panel';
+                questsPanel.innerHTML = '<div class="wow-panel-title">Quests</div><div class="space-y-3"></div>';
+            }
+            if (bagsPanel && questsPanel.previousElementSibling !== bagsPanel) {
+                bagsPanel.after(questsPanel);
+            } else if (!bagsPanel && questsPanel.previousElementSibling !== abilitiesPanel) {
+                abilitiesPanel.after(questsPanel);
+            }
+
+            const questBody = questsPanel.querySelector('.space-y-3');
+            ['notStartedQuestsPicker', 'activeQuests', 'completedQuests'].forEach(id => {
+                const el = document.getElementById(id);
+                const panel = el?.closest('.wow-subpanel');
+                if (panel && questBody && panel.parentElement !== questBody) {
+                    questBody.appendChild(panel);
+                }
+            });
+
+            const abilityPanel = document.getElementById('playerAbilities')?.closest('.wow-subpanel');
+            if (heroPanel && abilityPanel && abilityPanel.parentElement !== heroPanel) {
+                abilityPanel.classList.add('hero-abilities-panel');
+                heroPanel.appendChild(abilityPanel);
+                abilitiesPanel.classList.add('hidden');
+            }
+
+            if (achievementPanel && achievementPanel.previousElementSibling !== questsPanel) {
+                questsPanel.after(achievementPanel);
+            }
+        }
+
         function createQuestRow(quest) {
             const row = document.createElement('div');
             row.className = 'quest-picker-row';
@@ -346,8 +475,20 @@ export function initLegacyApp() {
             picker.id = `${textareaId}Picker`;
             picker.className = 'ability-picker';
 
-            picker.addEventListener('change', () => {
-                textarea.value = Array.from(picker.querySelectorAll('input:checked')).map(input => input.value).join('\n');
+            picker.addEventListener('change', event => {
+                const input = event.target.closest('input[type="checkbox"]');
+                if (!input) return;
+
+                const selected = textarea.value.trim()
+                    ? textarea.value.split('\n').map(value => value.trim()).filter(Boolean)
+                    : [];
+                const nextValues = input.checked
+                    ? [...new Set([...selected, input.value])]
+                    : selected.filter(value => value !== input.value);
+                const next = orderLearnedAbilities(nextValues);
+
+                textarea.value = next.join('\n');
+                renderAbilityPicker(textareaId, next);
             });
 
             textarea.after(picker);
@@ -419,6 +560,351 @@ export function initLegacyApp() {
             return min === max ? `${max}` : `${min} to ${max}`;
         }
 
+        function firstToUpper(value) {
+            const text = String(value || '');
+            return text ? text.charAt(0).toUpperCase() + text.slice(1) : '';
+        }
+
+        function classPower(playerClass) {
+            switch (String(playerClass || '').toLowerCase()) {
+                case 'scout':
+                    return 'energy';
+                case 'barbarian':
+                    return 'rage';
+                case 'shaman':
+                    return 'mana';
+                default:
+                    return 'power';
+            }
+        }
+
+        function getPlayerClassColor() {
+            switch (classPower(document.getElementById('playerClass')?.value || currentLoadedSaveData?.playerClass)) {
+                case 'energy':
+                    return '#ffff00';
+                case 'mana':
+                    return '#0000ff';
+                case 'rage':
+                    return '#ff0000';
+                default:
+                    return '#ff5400';
+            }
+        }
+
+        function getMaxPower() {
+            switch (classPower(document.getElementById('playerClass')?.value || currentLoadedSaveData?.playerClass)) {
+                case 'energy':
+                case 'rage':
+                    return 100;
+                case 'mana':
+                    return 5 * getPlayerStat('int');
+                default:
+                    return 0;
+            }
+        }
+
+        function getMaxHealth() {
+            return getPlayerStat('sta') * 10;
+        }
+
+        function getXpProgress() {
+            const totalXp = Math.min(22400, Math.max(0, parseInt(document.getElementById('playerXP')?.value, 10) || 0));
+            const level = getLevelForXp(totalXp);
+            const levelXp = getXpForLevel(level);
+            const nextLevelXp = xpToLvl[level + 1];
+            const max = nextLevelXp === undefined ? levelXp : nextLevelXp - levelXp;
+            const current = nextLevelXp === undefined ? max : totalXp - levelXp;
+            return { current, max, totalXp };
+        }
+
+        function setupHeroSourceHud() {
+            const summary = document.querySelector('.hero-summary');
+            if (!summary || summary.querySelector('.hero-source-hud')) return;
+
+            summary.classList.add('hero-source-layout');
+            const legacyFields = summary.querySelector('.hero-text-block');
+            if (legacyFields) {
+                legacyFields.classList.add('hero-legacy-fields');
+            }
+
+            summary.before(Object.assign(document.createElement('div'), {
+                className: 'wow-panel-title hero-section-title',
+                textContent: 'Hero & Abilities'
+            }));
+
+            const hud = document.createElement('div');
+            hud.className = 'hero-source-hud';
+            hud.innerHTML = `
+                <div class="hero-source-playerbar">
+                    <div class="hero-source-portrait"></div>
+                    <div class="hero-source-fill hero-source-health-fill"></div>
+                    <div class="hero-source-fill hero-source-power-fill"></div>
+                    <div class="hero-source-name">Murk</div>
+                    <label class="hero-source-level" title="Level"></label>
+                    <label class="hero-source-bar-text hero-source-health-text">
+                        <span>Health </span>
+                        <input type="number" id="playerCurrentHealth" min="0" class="hero-source-vital-input">
+                        <span>/</span>
+                        <span id="heroHealthMax">0</span>
+                    </label>
+                    <label class="hero-source-bar-text hero-source-power-text">
+                        <span id="heroPowerLabel">Power</span>
+                        <input type="number" id="playerCurrentPower" min="0" class="hero-source-vital-input">
+                        <span>/</span>
+                        <span id="heroPowerMax">0</span>
+                    </label>
+                </div>
+                <div class="hero-source-details">
+                    <div class="hero-source-meta">
+                        <span>Class</span>
+                        <strong class="hero-source-class"></strong>
+                        <span>Zone</span>
+                        <strong class="hero-source-zone"></strong>
+                    </div>
+                    <label class="hero-source-level-edit">
+                        <span>Level</span>
+                    </label>
+                    <div class="hero-source-xp-wrap">
+                        <label class="hero-source-xp-edit">
+                            <span>XP</span>
+                        </label>
+                        <div class="hero-source-xp-track">
+                            <div class="hero-source-xp-fill"></div>
+                            <div class="hero-source-xp-label"><input type="number" id="heroXpCurrent" min="0" class="hero-source-xp-current">/<span id="heroXpMax">0</span></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            summary.prepend(hud);
+
+            const levelInput = document.getElementById('playerLevel');
+            const levelSlot = hud.querySelector('.hero-source-level');
+            const levelEdit = hud.querySelector('.hero-source-level-edit');
+            if (levelInput && levelSlot) {
+                levelInput.classList.add('hero-source-level-input');
+                levelSlot.appendChild(levelInput);
+            }
+            if (levelInput && levelEdit) {
+                const levelClone = levelInput.cloneNode() as HTMLInputElement;
+                levelClone.id = 'playerLevelDetail';
+                levelClone.className = 'hero-source-level-detail-input';
+                levelClone.value = levelInput.value;
+                levelClone.addEventListener('input', function() {
+                    levelInput.value = this.value;
+                    levelInput.dispatchEvent(new Event('input', { bubbles: true }));
+                });
+                levelEdit.appendChild(levelClone);
+            }
+
+            const xpInput = document.getElementById('playerXP');
+            const xpEdit = hud.querySelector('.hero-source-xp-edit');
+            if (xpInput && xpEdit) {
+                xpInput.classList.add('hero-source-xp-input');
+                xpEdit.appendChild(xpInput);
+            }
+
+            const classValue = document.getElementById('heroClassValue');
+            const classSlot = hud.querySelector('.hero-source-class');
+            if (classValue && classSlot) {
+                classValue.classList.add('hero-source-class-value');
+                classSlot.appendChild(classValue);
+            }
+
+            const zoneValue = document.getElementById('heroZoneValue');
+            const zoneSlot = hud.querySelector('.hero-source-zone');
+            if (zoneValue && zoneSlot) {
+                zoneValue.classList.add('hero-source-zone-value');
+                zoneSlot.appendChild(zoneValue);
+            }
+
+            hud.querySelectorAll('#playerCurrentHealth, #playerCurrentPower').forEach(input => {
+                input.addEventListener('input', renderHeroHud);
+            });
+            hud.querySelector('#heroXpCurrent')?.addEventListener('input', function() {
+                const level = getLevelForCurrentSave();
+                const baseXp = getXpForLevel(level);
+                const nextLevelXp = xpToLvl[level + 1];
+                const levelBaseXp = nextLevelXp === undefined ? 0 : baseXp;
+                const maxXp = Math.max(0, nextLevelXp === undefined ? baseXp : nextLevelXp - baseXp);
+                const currentXp = Math.min(maxXp, Math.max(0, parseInt(this.value, 10) || 0));
+                const xpInput = document.getElementById('playerXP');
+                xpInput.value = Math.min(22400, levelBaseXp + currentXp);
+                document.getElementById('playerLevel').value = getLevelForXp(xpInput.value);
+                renderCurrentAbilityPicker();
+                renderEquipmentStats();
+            });
+        }
+
+        function renderHeroHud() {
+            setupHeroSourceHud();
+            const summary = document.querySelector('.hero-summary');
+            if (!summary) return;
+
+            const maxHealth = Math.max(1, getMaxHealth());
+            const maxPower = Math.max(0, getMaxPower());
+            const healthInput = document.getElementById('playerCurrentHealth');
+            const powerInput = document.getElementById('playerCurrentPower');
+
+            const savedHealth = currentLoadedSaveData?.playerCurrentHealth;
+            const savedPower = currentLoadedSaveData?.playerCurrentPower;
+            let currentHealth = parseInt(healthInput?.value, 10);
+            let currentPower = parseInt(powerInput?.value, 10);
+
+            if (Number.isNaN(currentHealth)) {
+                currentHealth = savedHealth === undefined ? maxHealth : Number(savedHealth) || 0;
+            }
+            if (Number.isNaN(currentPower)) {
+                currentPower = savedPower === undefined ? maxPower : Number(savedPower) || 0;
+            }
+
+            currentHealth = Math.min(maxHealth, Math.max(0, currentHealth));
+            currentPower = Math.min(maxPower, Math.max(0, currentPower));
+
+            if (healthInput) {
+                healthInput.max = String(maxHealth);
+                healthInput.value = String(currentHealth);
+            }
+            if (powerInput) {
+                powerInput.max = String(maxPower);
+                powerInput.value = String(currentPower);
+            }
+
+            const powerName = firstToUpper(classPower(document.getElementById('playerClass')?.value || currentLoadedSaveData?.playerClass));
+            const powerColor = getPlayerClassColor();
+            const xp = getXpProgress();
+            const hpPct = Math.max(0, Math.min(1, currentHealth / maxHealth));
+            const powerPct = maxPower > 0 ? Math.max(0, Math.min(1, currentPower / maxPower)) : 0;
+            const xpPct = xp.max > 0 ? Math.max(0, Math.min(1, xp.current / xp.max)) : 0;
+
+            summary.style.setProperty('--hero-health-pct', String(hpPct));
+            summary.style.setProperty('--hero-power-pct', String(powerPct));
+            summary.style.setProperty('--hero-xp-pct', String(xpPct));
+            summary.style.setProperty('--hero-power-color', `#${powerColor.replace('#', '')}`);
+
+            const healthMax = document.getElementById('heroHealthMax');
+            const powerLabel = document.getElementById('heroPowerLabel');
+            const powerMax = document.getElementById('heroPowerMax');
+            const xpCurrent = document.getElementById('heroXpCurrent');
+            const xpMax = document.getElementById('heroXpMax');
+            const levelDetail = document.getElementById('playerLevelDetail');
+            const classValue = document.getElementById('heroClassValue');
+
+            if (healthMax) healthMax.textContent = String(maxHealth);
+            if (powerLabel) powerLabel.textContent = powerName;
+            if (powerMax) powerMax.textContent = String(maxPower);
+            if (levelDetail) levelDetail.value = document.getElementById('playerLevel')?.value || '';
+            if (xpCurrent) {
+                xpCurrent.max = String(xp.max);
+                xpCurrent.value = String(xp.current);
+            }
+            if (xpMax) xpMax.textContent = String(xp.max);
+            if (classValue) classValue.style.color = powerColor;
+        }
+
+        function roundToTwoDec(value) {
+            return Math.trunc(value * 100) / 100;
+        }
+
+        function addPlusOrMinus(value) {
+            return value >= 0 ? `+${value}` : String(value);
+        }
+
+        function getEffectValue(field) {
+            return (currentLoadedSaveData?.playerEffects || []).reduce((sum, effectRow) => {
+                return sum + (Number(effectDB[effectRow?.[0]]?.[field]) || 0);
+            }, 0);
+        }
+
+        function getArmor() {
+            return getCurrentPlayerEquipment().reduce((sum, itemId) => {
+                const item = itemDB[itemId];
+                return item?.type === 'armor' ? sum + (Number(item.armor) || 0) : sum;
+            }, 0);
+        }
+
+        function getSkillHitPercent() {
+            return roundToTwoDec(getLevelForCurrentSave() * 0.5 + ((getPlayerStat('str') + getPlayerStat('agi')) / 2) * 0.1 + getEffectValue('phit'));
+        }
+
+        function getSpellHitPercent() {
+            return roundToTwoDec(getLevelForCurrentSave() * 0.5 + getPlayerStat('int') * 0.1 + getEffectValue('sphit'));
+        }
+
+        function getSkillCritPercent() {
+            return roundToTwoDec(getLevelForCurrentSave() * 0.1 + getPlayerStat('agi') * 0.1 + getEffectValue('pcrit'));
+        }
+
+        function getSpellCritPercent() {
+            return roundToTwoDec(getLevelForCurrentSave() * 0.1 + getPlayerStat('int') * 0.1 + getEffectValue('spcrit'));
+        }
+
+        function getDodge() {
+            return roundToTwoDec(getLevelForCurrentSave() * 0.1 + getPlayerStat('agi') * 0.1 + getEffectValue('pdodge'));
+        }
+
+        function getParry() {
+            return roundToTwoDec(getLevelForCurrentSave() * 0.1 + getPlayerStat('str') * 0.1);
+        }
+
+        function updateEquipmentHeroText() {
+            const slotsContainer = document.getElementById('equipmentSlots');
+            if (!slotsContainer) return;
+
+            const level = document.getElementById('playerLevel')?.value || '1';
+            const playerClass = document.getElementById('playerClass')?.value || currentLoadedSaveData?.playerClass || 'N/A';
+            slotsContainer.dataset.heroName = 'Murk';
+            slotsContainer.dataset.heroMeta = `Lvl ${level} ${playerClass}`;
+
+            const levelEl = slotsContainer.querySelector('.equipment-hero-level');
+            const classEl = slotsContainer.querySelector('.equipment-hero-class');
+            if (levelEl) levelEl.textContent = `Lvl ${level}`;
+            if (classEl) {
+                classEl.textContent = playerClass;
+                classEl.style.color = getPlayerClassColor();
+            }
+        }
+
+        function renderEquipmentStats() {
+            const statsPanel = document.getElementById('equipmentStatsPanel');
+            if (!statsPanel) return;
+
+            updateEquipmentHeroText();
+            const playerClass = document.getElementById('playerClass')?.value || currentLoadedSaveData?.playerClass || '';
+            const attack = abilityDB.abil_attack || {};
+            const damageMin = -1 * getAbilityHPMod(attack, 'hpmodmin');
+            const damageMax = -1 * getAbilityHPMod(attack, 'hpmodmax');
+            const rows = [
+                { label: 'General', heading: true },
+                { label: 'Health', value: getPlayerStat('sta') * 10 },
+                { label: firstToUpper(classPower(playerClass)), value: getMaxPower() },
+                { label: 'Attributes', heading: true },
+                { label: 'Strength', value: getPlayerStat('str') },
+                { label: 'Agility', value: getPlayerStat('agi') },
+                { label: 'Stamina', value: getPlayerStat('sta') },
+                { label: 'Intellect', value: getPlayerStat('int') },
+                { label: 'Melee', heading: true },
+                { label: 'Damage', value: `${damageMin}-${damageMax}` },
+                { label: 'Hit %', value: `${addPlusOrMinus(getSkillHitPercent())}%` },
+                { label: 'Crit %', value: `${getSkillCritPercent()}%` },
+                { label: 'Spell', heading: true },
+                { label: 'Spell Power', value: -1 * getBaseSpellHPMod() },
+                { label: 'Hit %', value: `${addPlusOrMinus(getSpellHitPercent())}%` },
+                { label: 'Crit %', value: `${getSpellCritPercent()}%` },
+                { label: 'Defense', heading: true },
+                { label: 'Armor', value: getArmor() },
+                { label: 'Dodge', value: `${getDodge()}%` },
+                { label: 'Parry', value: `${getParry()}%` }
+            ];
+
+            statsPanel.innerHTML = rows.map(row => `
+                <div class="equipment-stat-row ${row.heading ? 'equipment-stat-heading' : ''}">
+                    <span class="equipment-stat-label">${row.label}</span>
+                    <span class="equipment-stat-value">${row.heading ? '' : row.value}</span>
+                </div>
+            `).join('');
+            renderHeroHud();
+        }
+
         function getAbilityIcon(ability) {
             if (ability?.id === 'abil_attack') {
                 const weaponIcon = itemDB[getCurrentPlayerEquipment()[0]]?.icon;
@@ -430,16 +916,42 @@ export function initLegacyApp() {
         function renderCurrentAbilityPicker() {
             const picker = document.getElementById('playerAbilitiesPicker');
             if (!picker) return;
-            renderAbilityPicker('playerAbilities', Array.from(picker.querySelectorAll('input:checked')).map(input => input.value));
+            const raw = document.getElementById('playerAbilities')?.value.trim();
+            renderAbilityPicker('playerAbilities', raw ? raw.split('\n').map(value => value.trim()).filter(Boolean) : []);
+        }
+
+        function getCurrentPlayerClass() {
+            return String(document.getElementById('playerClass')?.value || currentLoadedSaveData?.playerClass || '').toLowerCase();
+        }
+
+        function getSpellbookAbilityIds(values) {
+            const ids = [...(classSpellbookAbilityIds[getCurrentPlayerClass()] || [])];
+            (values || []).forEach(value => {
+                if (value && !ids.includes(value)) ids.push(value);
+            });
+            return ids;
+        }
+
+        function orderLearnedAbilities(values) {
+            const learned = new Set(values || []);
+            return getSpellbookAbilityIds(values).filter(value => learned.has(value));
         }
 
         function renderAbilityPicker(textareaId, values) {
             const picker = document.getElementById(`${textareaId}Picker`);
             if (!picker) return;
 
+            const selectedValues = [...new Set(values || [])];
+            const selectedSet = new Set(selectedValues);
+            const abilityIds = getSpellbookAbilityIds(selectedValues);
+            const pageSize = 4;
+            const maxPage = Math.max(0, Math.ceil(abilityIds.length / pageSize) - 1);
+            const page = Math.min(Math.max(parseInt(picker.dataset.page, 10) || 0, 0), maxPage);
+            picker.dataset.page = String(page);
             picker.innerHTML = '';
-            (values || []).forEach(abilityId => {
+            abilityIds.slice(page * pageSize, page * pageSize + pageSize).forEach(abilityId => {
                 const ability = abilityDB[abilityId] || { id: abilityId, name: abilityId };
+                const learned = selectedSet.has(abilityId);
                 const description = (ability.desc || '')
                     .replace(/\$hpmod/g, getAbilityHPModText(ability))
                     .replace(/\$powmod/g, ability.cost || 0)
@@ -447,21 +959,45 @@ export function initLegacyApp() {
                     .replace(/\$target/g, ability.target || 'none');
                 const abilityIcon = getAbilityIcon(ability);
                 const icon = abilityIcon && abilityIcon !== 'none'
-                    ? `https://wow.zamimg.com/images/wow/icons/large/${abilityIcon.toLowerCase()}.jpg`
-                    : emptySlotIcons.Inventory;
+                    ? getLocalIconUrl(abilityIcon)
+                    : '/murloc-icons/icon_empty.png';
                 const row = document.createElement('label');
                 row.className = 'ability-picker-row';
                 row.innerHTML = `
-                    <input type="checkbox" value="${ability.id}" checked>
-                    <img class="ability-picker-icon" src="${icon}" alt="">
+                    <input type="checkbox" value="${abilityId}" ${learned ? 'checked' : ''}>
+                    <span class="ability-picker-icon">
+                        <img src="${icon}" alt="" onerror="this.src='/murloc-icons/unknown_icon.png'">
+                    </span>
                         <span class="ability-picker-body">
                             <span class="ability-picker-title">${ability.name || ability.id}</span>
                             <span class="ability-picker-meta">Target: ${ability.target || 'none'}</span>
                             <span class="ability-picker-desc">${description}</span>
                         </span>
                     `;
+                row.addEventListener('mouseenter', event => showAbilityTooltip(ability, icon, description, event));
+                row.addEventListener('mousemove', event => moveTooltip(event));
+                row.addEventListener('mouseleave', hideTooltip);
                 picker.appendChild(row);
             });
+
+            if (abilityIds.length > pageSize) {
+                const controls = document.createElement('div');
+                controls.className = 'ability-picker-controls';
+                controls.innerHTML = `
+                    <button type="button" class="ability-picker-page-btn ability-picker-page-prev" aria-label="Previous ability page" ${page === 0 ? 'disabled' : ''}></button>
+                    <span class="ability-picker-page-label">(${page + 1}/${maxPage + 1})</span>
+                    <button type="button" class="ability-picker-page-btn ability-picker-page-next" aria-label="Next ability page" ${page === maxPage ? 'disabled' : ''}></button>
+                `;
+                controls.querySelector('.ability-picker-page-prev')?.addEventListener('click', () => {
+                    picker.dataset.page = String(Math.max(0, page - 1));
+                    renderAbilityPicker(textareaId, selectedValues);
+                });
+                controls.querySelector('.ability-picker-page-next')?.addEventListener('click', () => {
+                    picker.dataset.page = String(Math.min(maxPage, page + 1));
+                    renderAbilityPicker(textareaId, selectedValues);
+                });
+                picker.appendChild(controls);
+            }
         }
 
         function getQuestIdsFromPicker(pickerId) {
@@ -541,7 +1077,8 @@ export function initLegacyApp() {
         function getListPickerValue(textareaId) {
             const picker = document.getElementById(`${textareaId}Picker`);
             if (picker && picker.classList.contains('ability-picker')) {
-                return Array.from(picker.querySelectorAll('input:checked')).map(input => input.value);
+                const raw = document.getElementById(textareaId).value.trim();
+                return raw ? raw.split('\n').map(value => value.trim()).filter(Boolean) : [];
             }
 
             if (picker && picker.classList.contains('quest-picker')) {
@@ -560,6 +1097,7 @@ export function initLegacyApp() {
         setupQuestPicker('activeQuests', questDB, 'Active Quests');
         setupQuestPicker('completedQuests', questDB, 'Completed Quests');
         setupNotStartedQuestPanel();
+        arrangeEditorPanels();
 
         // --- UI & DATA BINDING FUNCTIONS ---
         
@@ -583,6 +1121,8 @@ export function initLegacyApp() {
 
         function updateSlotDisplay(slotContainer, itemId, slotType) {
             const item = getItem(itemId);
+            slotContainer.classList.toggle('empty-slot', !item);
+            slotContainer.draggable = false;
             
             const iconContainer = slotContainer.querySelector('.icon-container');
             const nameDisplay = slotContainer.querySelector('.item-name-display');
@@ -595,8 +1135,8 @@ export function initLegacyApp() {
                 : 'item-name-display text-sm truncate';
 
             if (item && iconContainer && nameDisplay && idInput) {
-                const iconUrl = item.icon ? `https://wow.zamimg.com/images/wow/icons/large/${item.icon.toLowerCase()}.jpg` : '';
-                iconContainer.innerHTML = iconUrl ? `<img src="${iconUrl}" class="w-full h-full rounded" alt="${item.name}">` : '';
+                const iconUrl = getLocalIconUrl(item.icon);
+                iconContainer.innerHTML = iconUrl ? `<img src="${iconUrl}" class="w-full h-full rounded" alt="${item.name}" draggable="false" onerror="this.style.visibility='hidden'">` : '';
                 
                 nameDisplay.textContent = item.name;
                 nameDisplay.title = item.name;
@@ -611,12 +1151,8 @@ export function initLegacyApp() {
                     }
                 }
             } else if (iconContainer && nameDisplay && idInput) { // Empty the slot
-                const placeholderIconUrl = emptySlotIcons[slotType];
-                if (placeholderIconUrl) {
-                    iconContainer.innerHTML = `<img src="${placeholderIconUrl}" class="w-full h-full rounded opacity-60" alt="${slotType} slot">`;
-                } else {
-                    iconContainer.innerHTML = '';
-                }
+                const emptyIcon = emptySlotIcons[slotType] || emptySlotIcons.Inventory;
+                iconContainer.innerHTML = emptyIcon ? `<img src="${emptyIcon}" class="w-full h-full rounded" alt="${slotType} slot" draggable="false">` : '';
                 
                 nameDisplay.textContent = 'Empty';
                 nameDisplay.title = 'Empty';
@@ -633,11 +1169,19 @@ export function initLegacyApp() {
 
         function populateEquipmentUI(equipmentData) {
             const slotsContainer = document.getElementById('equipmentSlots');
+            slotsContainer.classList.add('stats-open');
             slotsContainer.innerHTML = `
                 <div id="equipment-col-left" class="flex flex-col gap-4"></div>
                 <div id="equipment-col-middle" class="flex flex-col justify-end"></div>
                 <div id="equipment-col-right" class="flex flex-col gap-4"></div>
+                <div class="equipment-hero-meta" aria-hidden="true">
+                    <span class="equipment-hero-level"></span>
+                    <span class="equipment-hero-class"></span>
+                </div>
+                <div class="equipment-hero-model" aria-hidden="true"></div>
+                <div id="equipmentStatsPanel" class="equipment-stats-panel" aria-hidden="false"></div>
             `;
+            updateEquipmentHeroText();
 
             const colLeft = document.getElementById('equipment-col-left');
             const colMiddle = document.getElementById('equipment-col-middle');
@@ -685,6 +1229,7 @@ export function initLegacyApp() {
                 const slotElement = createSlotElement(def.name, itemId, def.index);
                 def.column.appendChild(slotElement);
             });
+            renderEquipmentStats();
         }
         
         function readEquipmentFromUI() {
@@ -706,20 +1251,19 @@ export function initLegacyApp() {
             const quantity = itemData && itemData[1] !== undefined ? itemData[1] : 0;
             const item = getItem(itemId);
 
-            const iconUrl = item && item.icon ? `https://wow.zamimg.com/images/wow/icons/large/${item.icon.toLowerCase()}.jpg` : '';
+            const iconUrl = item && item.icon ? getLocalIconUrl(item.icon) : '';
             const itemName = item ? item.name : 'Empty';
             const itemQuality = item ? item.quality : 'common';
             const maxStack = getItemStackSize(itemId);
+            const emptyClass = item ? '' : ' empty-slot';
 
             let iconContent = '';
             if (iconUrl) {
-                iconContent = `<img src="${iconUrl}" class="w-full h-full rounded" alt="${itemName}">`;
-            } else {
-                iconContent = `<img src="${emptySlotIcons['Inventory']}" class="w-full h-full rounded opacity-60" alt="Empty inventory slot">`;
+                iconContent = `<img src="${iconUrl}" class="w-full h-full rounded" alt="${itemName}" draggable="false" onerror="this.style.visibility='hidden'">`;
             }
 
             return `
-                <div class="item-slot-container relative grid grid-cols-[auto_1fr_auto] items-center gap-x-2 p-1.5 border border-stone-700 rounded bg-black/20">
+                <div class="item-slot-container relative grid grid-cols-[auto_1fr_auto] items-center gap-x-2 p-1.5 border border-stone-700 rounded bg-black/20${emptyClass}" draggable="false">
                     <div class="icon-container w-10 h-10 bg-black/30 border-2 border-stone-600 rounded flex items-center justify-center cursor-pointer">
                         ${iconContent}
                     </div>
@@ -749,6 +1293,11 @@ export function initLegacyApp() {
             const bagTypeSlot = bagContainer.querySelector(`#${bagKey}-type-slot`);
             
             const bagId = (Array.isArray(bagData) && bagData.length > 0) ? bagData[0] : '';
+            const slotCount = getBagSlotCount(bagId);
+            const bagItem = getItem(bagId);
+            bagContainer.dataset.bagName = bagKey === 'bag1' ? 'Backpack' : (bagItem ? bagItem.name : 'Bag');
+            bagContainer.dataset.slotCount = String(slotCount);
+            bagContainer.classList.toggle('missing-bag', bagKey !== 'bag1' && slotCount === 0);
             
             if (bagTypeSlot) { // For bag2 and bag3 which have a dedicated slot for the bag item
                 updateSlotDisplay(bagTypeSlot, bagId, 'Bag');
@@ -757,12 +1306,23 @@ export function initLegacyApp() {
             if (!slotsContainer) return;
             slotsContainer.innerHTML = '';
 
-            const slotCount = getBagSlotCount(bagId);
             for (let i = 1; i <= slotCount; i++) {
                 const slotData = bagData ? bagData[i] : null;
                 const displayData = Array.isArray(slotData) && slotData[0] === "empty" && slotData[1] === 0 ? null : slotData;
                 slotsContainer.innerHTML += createSlotHTML(i, displayData);
             }
+        }
+
+        function moveMoneyEditorToBackpack() {
+            const moneyEditor = document.querySelector('.hero-gold-pill');
+            const backpack = document.getElementById('bag1-container');
+            if (!moneyEditor || !backpack || moneyEditor.parentElement === backpack) return;
+
+            moneyEditor.classList.add('backpack-money-editor');
+            moneyEditor.querySelector('img[alt="Gold"]')?.setAttribute('src', '/murloc-ui/money-gold.png');
+            moneyEditor.querySelector('img[alt="Silver"]')?.setAttribute('src', '/murloc-ui/money-silver.png');
+            moneyEditor.querySelector('img[alt="Copper"]')?.setAttribute('src', '/murloc-ui/money-copper.png');
+            backpack.appendChild(moneyEditor);
         }
         
         function readBagFromUI(bagKey) {
@@ -808,7 +1368,7 @@ export function initLegacyApp() {
             // --- Part 1: Icon ---
             let iconHtml = '';
             if (item.icon) {
-                const iconUrl = `https://wow.zamimg.com/images/wow/icons/large/${item.icon.toLowerCase()}.jpg`;
+                const iconUrl = getLocalIconUrl(item.icon);
                 iconHtml = `
                     <div class="flex-shrink-0">
                         <img src="${iconUrl}" class="w-14 h-14 border-2 border-stone-500 rounded" alt="${item.name}">
@@ -960,13 +1520,256 @@ export function initLegacyApp() {
                 </div>
             `;
 
-            tooltip.style.left = `${event.pageX + 15}px`;
-            tooltip.style.top = `${event.pageY + 15}px`;
             tooltip.classList.remove('hidden');
+            moveTooltip(event);
+        }
+
+        function moveTooltip(event) {
+            const tooltip = document.getElementById('tooltip');
+            if (!tooltip || tooltip.classList.contains('hidden')) return;
+            const margin = 8;
+            const offset = 15;
+            const width = tooltip.offsetWidth;
+            const height = tooltip.offsetHeight;
+            const minLeft = window.scrollX + margin;
+            const minTop = window.scrollY + margin;
+            const maxLeft = window.scrollX + window.innerWidth - width - margin;
+            const maxTop = window.scrollY + window.innerHeight - height - margin;
+            const left = Math.min(Math.max(event.pageX + offset, minLeft), Math.max(minLeft, maxLeft));
+            const top = Math.min(Math.max(event.pageY + offset, minTop), Math.max(minTop, maxTop));
+            tooltip.style.left = `${left}px`;
+            tooltip.style.top = `${top}px`;
+        }
+
+        function showAbilityTooltip(ability, icon, description, event) {
+            const tooltip = document.getElementById('tooltip');
+            if (!ability || !tooltip) return;
+
+            const meta = [];
+            if (ability.type) meta.push(firstToUpper(ability.type));
+            if (ability.target && ability.target !== 'none') meta.push(`Target: ${ability.target}`);
+            if (ability.level) meta.push(`Requires Level ${ability.level}`);
+
+            tooltip.innerHTML = `
+                <div class="flex gap-3">
+                    <div class="flex-shrink-0">
+                        <img src="${icon}" class="w-14 h-14 border-2 border-stone-500 rounded" alt="${ability.name || ability.id}" onerror="this.src='/murloc-icons/unknown_icon.png'">
+                    </div>
+                    <div class="flex-grow space-y-2">
+                        <div class="font-bold text-lg text-yellow-300">${ability.name || ability.id}</div>
+                        ${meta.length ? `<div class="text-stone-300">${meta.join(' · ')}</div>` : ''}
+                        ${description ? `<div class="text-green-300">${description}</div>` : ''}
+                    </div>
+                </div>
+            `;
+            tooltip.classList.remove('hidden');
+            moveTooltip(event);
+        }
+
+        function showSlotTooltip(slotType, event) {
+            const tooltip = document.getElementById('tooltip');
+            if (!slotType || !tooltip) return;
+            const slotName = equipmentSlotDisplayNames[slotType] || slotType;
+            tooltip.innerHTML = `
+                <div class="space-y-1">
+                    <div class="font-bold text-lg" style="color:#f2bc04">${slotName}</div>
+                    <div class="text-stone-300">Equipment Slot</div>
+                </div>
+            `;
+            tooltip.classList.remove('hidden');
+            moveTooltip(event);
         }
 
         function hideTooltip() {
             document.getElementById('tooltip').classList.add('hidden');
+        }
+
+        function clearItemDragState() {
+            document.querySelectorAll('.dragging-item-source').forEach(el => {
+                el.classList.remove('dragging-item-source');
+            });
+            dragImageEl?.remove();
+            dragImageEl = null;
+            draggedItemSourceSlot = null;
+        }
+
+        function setItemDragImage(dataTransfer, itemId, sourceEl) {
+            dragImageEl?.remove();
+            const item = getItem(itemId);
+            const iconUrl = item?.icon ? getLocalIconUrl(item.icon) : '';
+            const sourceImg = sourceEl?.querySelector?.('.icon-container img, img');
+            const sourceRect = sourceImg?.getBoundingClientRect?.();
+            const width = Math.max(1, Math.round(sourceRect?.width || 40));
+            const height = Math.max(1, Math.round(sourceRect?.height || width));
+            const src = sourceImg?.currentSrc || sourceImg?.src || iconUrl;
+            dragImageEl = document.createElement('div');
+            dragImageEl.className = 'murloc-drag-image';
+            dragImageEl.style.cssText = [
+                'position:absolute',
+                'left:-1000px',
+                'top:-1000px',
+                `width:${width}px`,
+                `height:${height}px`,
+                'pointer-events:none',
+                'overflow:hidden'
+            ].join(';');
+            if (src) {
+                const icon = document.createElement('img');
+                icon.src = src;
+                icon.style.cssText = 'width:100%;height:100%;display:block;';
+                dragImageEl.appendChild(icon);
+            }
+            const chip = document.createElement('img');
+            chip.src = '/murloc-ui/cursor-item.png';
+            chip.style.cssText = 'position:absolute;left:0;top:0;width:32px;height:32px;pointer-events:none;';
+            dragImageEl.appendChild(chip);
+            document.body.appendChild(dragImageEl);
+            dataTransfer.setDragImage(dragImageEl, Math.round(width * 0.25), Math.round(height * 0.25));
+        }
+
+        function startItemDrag(event, itemId, sourceSlot, sourceEl = sourceSlot) {
+            if (!event.dataTransfer || !itemId) return false;
+            event.dataTransfer.setData('text/plain', itemId);
+            event.dataTransfer.setData('application/x-murloc-item-id', itemId);
+            event.dataTransfer.effectAllowed = sourceSlot ? 'move' : 'copy';
+            draggedItemSourceSlot = sourceSlot || null;
+            if (sourceSlot) {
+                if (!sourceSlot.dataset.dragSourceId) {
+                    sourceSlot.dataset.dragSourceId = `slot-${++dragSourceSeq}`;
+                }
+                event.dataTransfer.setData('application/x-murloc-source-slot', sourceSlot.dataset.dragSourceId);
+                const qty = sourceSlot.querySelector('.item-qty-input')?.value || '';
+                event.dataTransfer.setData('application/x-murloc-item-qty', qty);
+                sourceSlot.classList.add('dragging-item-source');
+            }
+            setItemDragImage(event.dataTransfer, itemId, sourceEl);
+            hideTooltip();
+            return true;
+        }
+
+        function applyDraggedQuantity(targetSlot, dataTransfer) {
+            const qtyInput = targetSlot.querySelector('.item-qty-input');
+            const qty = parseInt(dataTransfer.getData('application/x-murloc-item-qty'), 10);
+            if (!qtyInput || !qty) return;
+            qtyInput.value = Math.min(qty, parseInt(qtyInput.max, 10) || qty);
+        }
+
+        function clearDraggedSource(targetSlot, dataTransfer) {
+            const sourceId = dataTransfer?.getData('application/x-murloc-source-slot');
+            const sourceSlot = draggedItemSourceSlot ||
+                (sourceId ? document.querySelector(`[data-drag-source-id="${sourceId}"]`) : null);
+            if (!sourceSlot || sourceSlot === targetSlot) return;
+            const sourceType = getSlotTypeFromContainer(sourceSlot);
+            if (sourceType === 'Bag' && sourceSlot.id.includes('-type-slot')) {
+                populateBagUI(sourceSlot.id.slice(0, 4), []);
+                return;
+            }
+            updateSlotDisplay(sourceSlot, null, sourceType);
+            if (sourceSlot.closest('#equipmentSlots')) {
+                renderCurrentAbilityPicker();
+                renderEquipmentStats();
+            }
+        }
+
+        function makeItemDragElement(itemId, sourceEl) {
+            const item = getItem(itemId);
+            const iconUrl = item?.icon ? getLocalIconUrl(item.icon) : '';
+            const sourceImg = sourceEl?.querySelector?.('.icon-container img, img');
+            const sourceRect = sourceImg?.getBoundingClientRect?.();
+            const bagIconRect = sourceEl?.matches?.('#itemList a')
+                ? document.querySelector('#bagsSection [id$="-slots"] .icon-container')?.getBoundingClientRect()
+                : null;
+            const width = bagIconRect
+                ? Math.max(40, Math.round(bagIconRect.width - 8))
+                : Math.max(1, Math.round(sourceRect?.width || 40));
+            const height = bagIconRect
+                ? Math.max(40, Math.round(bagIconRect.height - 8))
+                : Math.max(1, Math.round(sourceRect?.height || width));
+            const src = sourceImg?.currentSrc || sourceImg?.src || iconUrl;
+            const el = document.createElement('div');
+            el.className = 'murloc-drag-image';
+            el.style.width = `${width}px`;
+            el.style.height = `${height}px`;
+            if (src) {
+                const icon = document.createElement('img');
+                icon.src = src;
+                icon.style.cssText = 'width:100%;height:100%;display:block;';
+                el.appendChild(icon);
+            }
+            const chip = document.createElement('img');
+            chip.src = '/murloc-ui/cursor-item.png';
+            chip.style.cssText = 'position:absolute;left:0;top:0;width:32px;height:32px;pointer-events:none;';
+            el.appendChild(chip);
+            return el;
+        }
+
+        function movePointerGhost(event) {
+            if (!activePointerDrag?.ghost) return;
+            activePointerDrag.ghost.style.transform =
+                `translate(${event.clientX - activePointerDrag.offsetX}px, ${event.clientY - activePointerDrag.offsetY}px)`;
+        }
+
+        function setPointerDropTarget(target) {
+            if (currentPointerDropTarget === target) return;
+            currentPointerDropTarget?.classList.remove('drop-target-hover');
+            currentPointerDropTarget = target;
+            currentPointerDropTarget?.classList.add('drop-target-hover');
+        }
+
+        function cleanupPointerDrag() {
+            setPointerDropTarget(null);
+            pendingPointerDrag = null;
+            activePointerDrag = null;
+            clearItemDragState();
+        }
+
+        function startPointerDrag(event) {
+            if (!pendingPointerDrag) return;
+            const { sourceSlot, sourceEl, itemId } = pendingPointerDrag;
+            const dragSourceEl = sourceEl || sourceSlot;
+            if (sourceSlot && !sourceSlot.dataset.dragSourceId) {
+                sourceSlot.dataset.dragSourceId = `slot-${++dragSourceSeq}`;
+            }
+            const ghost = makeItemDragElement(itemId, dragSourceEl);
+            const rect = dragSourceEl.querySelector('.icon-container img, img')?.getBoundingClientRect() ||
+                dragSourceEl.getBoundingClientRect();
+            ghost.style.position = 'fixed';
+            ghost.style.left = '0';
+            ghost.style.top = '0';
+            ghost.style.zIndex = '10000';
+            ghost.style.pointerEvents = 'none';
+            document.body.appendChild(ghost);
+            dragImageEl = ghost;
+            draggedItemSourceSlot = sourceSlot || null;
+            dragSourceEl.classList.add('dragging-item-source');
+            activePointerDrag = {
+                itemId,
+                sourceSlot: sourceSlot || null,
+                quantity: sourceSlot?.querySelector('.item-qty-input')?.value || '',
+                sourceId: sourceSlot?.dataset.dragSourceId || '',
+                ghost,
+                offsetX: event.clientX - rect.left,
+                offsetY: event.clientY - rect.top
+            };
+            hideTooltip();
+            movePointerGhost(event);
+        }
+
+        function dropPointerDrag(event) {
+            if (!activePointerDrag) return;
+            activePointerDrag.ghost.style.display = 'none';
+            const slotContainer = document.elementFromPoint(event.clientX, event.clientY)
+                ?.closest?.('#statEditor .item-slot-container');
+            activePointerDrag.ghost.style.display = '';
+            if (!slotContainer) return;
+            const dt = new DataTransfer();
+            dt.setData('text/plain', activePointerDrag.itemId);
+            dt.setData('application/x-murloc-item-id', activePointerDrag.itemId);
+            if (activePointerDrag.sourceId) {
+                dt.setData('application/x-murloc-source-slot', activePointerDrag.sourceId);
+            }
+            dt.setData('application/x-murloc-item-qty', activePointerDrag.quantity);
+            slotContainer.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: dt }));
         }
 
         // --- TOAST HELPER ---
@@ -1136,6 +1939,71 @@ export function initLegacyApp() {
         }
 
         // --- SAVE DATA PROCESSING ---
+        function getMoneyInputs() {
+            return {
+                gold: document.getElementById('playerMoneyGold'),
+                silver: document.getElementById('playerMoneySilver'),
+                copper: document.getElementById('playerMoneyCopper')
+            };
+        }
+
+        function moneyPartValue(input) {
+            return Math.max(0, parseInt(input?.value, 10) || 0);
+        }
+
+        function setMoneyFromCopper(totalCopper) {
+            const money = getMoneyInputs();
+            const total = Math.min(maxMoneyCopper, Math.max(0, totalCopper || 0));
+            money.gold.value = Math.floor(total / 10000);
+            money.silver.value = Math.floor((total % 10000) / 100);
+            money.copper.value = total % 100;
+            return total;
+        }
+
+        function normalizeMoneyInputs() {
+            const money = getMoneyInputs();
+            const total =
+                (moneyPartValue(money.gold) * 10000) +
+                (moneyPartValue(money.silver) * 100) +
+                moneyPartValue(money.copper);
+            return setMoneyFromCopper(total);
+        }
+
+        function moneyDigits(value) {
+            return String(value || '').replace(/\D/g, '');
+        }
+
+        function startMoneyInput(input) {
+            const money = getMoneyInputs();
+            input.dataset.rawMoney = moneyDigits(input.value);
+            input.dataset.baseMoney = String(input === money.copper
+                ? moneyPartValue(money.gold) * 10000 + moneyPartValue(money.silver) * 100
+                : moneyPartValue(money.gold) * 10000 + moneyPartValue(money.copper));
+        }
+
+        function updateLowerMoneyInput(input, rawValue) {
+            const money = getMoneyInputs();
+            const raw = moneyDigits(rawValue);
+            const amount = parseInt(raw, 10) || 0;
+            const base = parseInt(input.dataset.baseMoney, 10) || 0;
+            const unit = input === money.copper ? 1 : 100;
+            const maxAmount = Math.floor(Math.max(0, maxMoneyCopper - base) / unit);
+            const clampedAmount = Math.min(amount, maxAmount);
+            input.dataset.rawMoney = raw ? String(clampedAmount) : '';
+            setMoneyFromCopper(base + clampedAmount * unit);
+            requestAnimationFrame(() => input.setSelectionRange(input.value.length, input.value.length));
+        }
+
+        function replaceOrAppendMoneyInput(input, text) {
+            const replacing = input.selectionStart === 0 && input.selectionEnd === input.value.length;
+            updateLowerMoneyInput(input, replacing ? moneyDigits(text) : (input.dataset.rawMoney || '') + moneyDigits(text));
+        }
+
+        function deleteLowerMoneyInput(input) {
+            const replacing = input.selectionStart === 0 && input.selectionEnd === input.value.length;
+            updateLowerMoneyInput(input, replacing ? '' : (input.dataset.rawMoney || '').slice(0, -1));
+        }
+
         function loadSaveData(saveData) {
             currentLoadedSaveData = saveData;
             document.getElementById('statEditor').classList.remove('hidden');
@@ -1158,10 +2026,7 @@ export function initLegacyApp() {
                 heroZoneValueEl.textContent = currentZone;
             }
 
-            const totalCopper = Math.max(0, saveData.playerMoney || 0);
-            document.getElementById('playerMoneyGold').value = Math.floor(totalCopper / 10000);
-            document.getElementById('playerMoneySilver').value = Math.floor((totalCopper % 10000) / 100);
-            document.getElementById('playerMoneyCopper').value = totalCopper % 100;
+            setMoneyFromCopper(saveData.playerMoney || 0);
             
             const playTime = Math.max(0, saveData.playTime || 0);
             document.getElementById('playTime').value = playTime;
@@ -1169,6 +2034,8 @@ export function initLegacyApp() {
             const clampedXP = Math.min(22400, Math.max(0, saveData.playerXP || 0));
             document.getElementById('playerXP').value = clampedXP;
             document.getElementById('playerLevel').value = getLevelForXp(clampedXP);
+            document.getElementById('playerCurrentHealth').value = saveData.playerCurrentHealth ?? '';
+            document.getElementById('playerCurrentPower').value = saveData.playerCurrentPower ?? '';
             const unlocked = Math.max(0, saveData.unlocked_chests || 0);
             document.getElementById('unlockedChests').value = unlocked;
 
@@ -1186,18 +2053,39 @@ export function initLegacyApp() {
             renderCurrentAbilityPicker();
             
             populateBagUI('bag1', saveData.bag1);
+            moveMoneyEditorToBackpack();
             populateBagUI('bag2', saveData.bag2);
             populateBagUI('bag3', saveData.bag3);
+            renderHeroHud();
         }
+
+        setupHeroSourceHud();
+        loadSaveData({
+            playerClass: 'Scout',
+            playerMoney: 0,
+            playerXP: 0,
+            playerCurrentHealth: undefined,
+            playerCurrentPower: undefined,
+            playerEquipment: [],
+            playerEffects: [],
+            playerAbilities: [],
+            activeQuests: [],
+            completedQuests: [],
+            bag1: ['backpack'],
+            bag2: [],
+            bag3: [],
+            playTime: 0,
+            unlocked_chests: 0,
+            currentZone: 'N/A'
+        });
         
         function applyEdits(saveData) {
-            const gold = parseInt(document.getElementById('playerMoneyGold').value) || 0;
-            const silver = parseInt(document.getElementById('playerMoneySilver').value) || 0;
-            const copper = parseInt(document.getElementById('playerMoneyCopper').value) || 0;
-            saveData.playerMoney = (gold * 10000) + (silver * 100) + copper;
+            saveData.playerMoney = normalizeMoneyInputs();
 
             saveData.playTime = Number(document.getElementById('playTime').value);
-            saveData.playerXP = getXpForLevel(parseInt(document.getElementById('playerLevel').value) || 1);
+            saveData.playerXP = Math.min(22400, Math.max(0, parseInt(document.getElementById('playerXP').value, 10) || 0));
+            saveData.playerCurrentHealth = Math.min(getMaxHealth(), Math.max(0, parseInt(document.getElementById('playerCurrentHealth').value, 10) || 0));
+            saveData.playerCurrentPower = Math.min(getMaxPower(), Math.max(0, parseInt(document.getElementById('playerCurrentPower').value, 10) || 0));
             saveData.unlocked_chests = Number(document.getElementById('unlockedChests').value);
 
             // Ensure achievements reflect the current input values after applying edits
@@ -1217,6 +2105,40 @@ export function initLegacyApp() {
             saveData.bag3 = readBagFromUI('bag3');
             return saveData;
         }
+
+        (function setupMoneyInputs() {
+            const money = getMoneyInputs();
+            money.gold.max = String(maxGold);
+            money.silver.removeAttribute('max');
+            money.copper.removeAttribute('max');
+            Object.values(money).forEach(input => {
+                input.type = 'text';
+                input.inputMode = 'numeric';
+                input.min = '0';
+            });
+            money.gold.addEventListener('input', normalizeMoneyInputs);
+            [money.silver, money.copper].forEach(input => {
+                input.addEventListener('focus', () => startMoneyInput(input));
+                input.addEventListener('beforeinput', event => {
+                    if (event.inputType === 'insertText' || event.inputType === 'insertFromPaste') {
+                        event.preventDefault();
+                        replaceOrAppendMoneyInput(input, event.data);
+                    } else if (event.inputType === 'deleteContentBackward') {
+                        event.preventDefault();
+                        deleteLowerMoneyInput(input);
+                    }
+                });
+                input.addEventListener('paste', event => {
+                    event.preventDefault();
+                    replaceOrAppendMoneyInput(input, event.clipboardData.getData('text'));
+                });
+                input.addEventListener('blur', () => {
+                    delete input.dataset.rawMoney;
+                    delete input.dataset.baseMoney;
+                    normalizeMoneyInputs();
+                });
+            });
+        })();
 
         // --- ENFORCE BAG ITEM QUANTITY CAPS ---
         (function enforceBagQuantityCaps() {
@@ -1273,12 +2195,14 @@ export function initLegacyApp() {
             this.value = Math.min(40, Math.max(1, parseInt(this.value) || 1));
             document.getElementById('playerXP').value = getXpForLevel(this.value);
             renderCurrentAbilityPicker();
+            renderEquipmentStats();
         });
 
         document.getElementById('playerXP').addEventListener('input', function() {
             this.value = Math.min(22400, Math.max(0, parseInt(this.value) || 0));
             document.getElementById('playerLevel').value = getLevelForXp(this.value);
             renderCurrentAbilityPicker();
+            renderEquipmentStats();
         });
 
         // Live achievement updates when Achievement inputs change (single source of truth)
@@ -1322,7 +2246,11 @@ export function initLegacyApp() {
                 if (idInput) {
                     const id = idInput.value;
                     if (show) {
-                        showTooltip(id, event);
+                        if (id) {
+                            showTooltip(id, event);
+                        } else if (slotContainer.closest('#equipmentSlots')) {
+                            showSlotTooltip(getSlotTypeFromContainer(slotContainer), event);
+                        }
                     } else {
                         hideTooltip();
                     }
@@ -1334,17 +2262,14 @@ export function initLegacyApp() {
             if (activeSlotDisplay) {
                 activeSlotDisplay.classList.remove('active-slot');
                 activeSlotDisplay = null;
+                resetAutoCodexSlotFilter();
             }
         }
         
         editorContainer.addEventListener('mouseover', e => handleTooltip(e, true));
         editorContainer.addEventListener('mouseout', e => handleTooltip(e, false));
         editorContainer.addEventListener('mousemove', e => {
-            const tooltip = document.getElementById('tooltip');
-            if (!tooltip.classList.contains('hidden')) {
-                tooltip.style.left = `${e.pageX + 15}px`;
-                tooltip.style.top = `${e.pageY + 15}px`;
-            }
+            moveTooltip(e);
         });
         
         document.addEventListener('click', (e) => {
@@ -1355,11 +2280,22 @@ export function initLegacyApp() {
                 return;
             }
 
+            if (suppressNextSlotClick && e.target.closest('#statEditor .item-slot-container')) {
+                suppressNextSlotClick = false;
+                e.preventDefault();
+                return;
+            }
+            suppressNextSlotClick = false;
+
             if (iconTarget) {
                 if (activeSlotDisplay !== iconTarget) {
                     deselectActiveSlot();
                     activeSlotDisplay = iconTarget;
                     activeSlotDisplay.classList.add('active-slot');
+                }
+                const slotContainer = iconTarget.closest('.item-slot-container');
+                if (slotContainer?.closest('#equipmentSlots')) {
+                    filterCodexForEquipmentSlot(getSlotTypeFromContainer(slotContainer));
                 }
             } else if (clearBtnTarget) {
                 const slotContainer = clearBtnTarget.closest('.item-slot-container');
@@ -1371,7 +2307,10 @@ export function initLegacyApp() {
                         const bagKey = slotContainer.id.slice(0, 4);
                         document.getElementById(`${bagKey}-slots`).innerHTML = '';
                     }
-                    if (slotContainer.closest('#equipmentSlots')) renderCurrentAbilityPicker();
+                    if (slotContainer.closest('#equipmentSlots')) {
+                        renderCurrentAbilityPicker();
+                        renderEquipmentStats();
+                    }
                 }
             } else {
                 deselectActiveSlot();
@@ -1390,7 +2329,10 @@ export function initLegacyApp() {
                         const bagKey = slotContainer.id.slice(0, 4);
                         populateBagUI(bagKey, readBagFromUI(bagKey));
                     }
-                    if (slotContainer.closest('#equipmentSlots')) renderCurrentAbilityPicker();
+                    if (slotContainer.closest('#equipmentSlots')) {
+                        renderCurrentAbilityPicker();
+                        renderEquipmentStats();
+                    }
                 }
             }
         }, true);
@@ -1401,11 +2343,79 @@ export function initLegacyApp() {
             }
         });
 
-        document.getElementById('fileInput').addEventListener('change', function(event) {
-            const file = event.target.files[0];
+        document.addEventListener('pointerdown', (e) => {
+            if (e.button !== 0 || e.target.closest('.clear-slot-btn')) return;
+            const codexItem = e.target.closest('#itemList a[data-item-id]');
+            if (codexItem) {
+                pendingPointerDrag = {
+                    itemId: codexItem.dataset.itemId,
+                    sourceSlot: null,
+                    sourceEl: codexItem,
+                    startX: e.clientX,
+                    startY: e.clientY
+                };
+                return;
+            }
+            const iconTarget = e.target.closest('#statEditor .item-slot-container .icon-container');
+            if (!iconTarget) return;
+            const sourceSlot = iconTarget.closest('.item-slot-container');
+            const itemId = sourceSlot?.querySelector('.item-id-input')?.value.trim();
+            if (!itemId) return;
+            pendingPointerDrag = {
+                itemId,
+                sourceSlot,
+                sourceEl: sourceSlot,
+                startX: e.clientX,
+                startY: e.clientY
+            };
+        }, true);
+
+        document.addEventListener('pointermove', (e) => {
+            if (!pendingPointerDrag && !activePointerDrag) return;
+            if (!activePointerDrag) {
+                const dx = e.clientX - pendingPointerDrag.startX;
+                const dy = e.clientY - pendingPointerDrag.startY;
+                if ((dx * dx) + (dy * dy) < 16) return;
+                startPointerDrag(e);
+            }
+            if (!activePointerDrag) return;
+            e.preventDefault();
+            movePointerGhost(e);
+            activePointerDrag.ghost.style.display = 'none';
+            const target = document.elementFromPoint(e.clientX, e.clientY)
+                ?.closest?.('#statEditor .item-slot-container');
+            activePointerDrag.ghost.style.display = '';
+            setPointerDropTarget(target);
+        }, true);
+
+        document.addEventListener('pointerup', (e) => {
+            if (!pendingPointerDrag && !activePointerDrag) return;
+            if (activePointerDrag) {
+                e.preventDefault();
+                suppressNextSlotClick = true;
+                dropPointerDrag(e);
+            }
+            cleanupPointerDrag();
+        }, true);
+
+        document.addEventListener('pointercancel', cleanupPointerDrag, true);
+
+        document.addEventListener('dragstart', (e) => {
+            const slotContainer = e.target.closest('#statEditor .item-slot-container');
+            if (!slotContainer) return;
+            e.preventDefault();
+        }, true);
+
+        document.addEventListener('dragend', clearItemDragState, true);
+
+        function readSaveFile(file) {
             const errorEl = document.getElementById('error');
             const inputJsonEl = document.getElementById('inputJson');
             if (!file) return;
+            if (!file.name.toLowerCase().endsWith('.sav')) {
+                errorEl.textContent = 'Only .sav save scroll files can be uploaded.';
+                return;
+            }
             const reader = new FileReader();
             reader.onload = function(e) {
                 inputJsonEl.value = e.target.result;
@@ -1415,7 +2425,34 @@ export function initLegacyApp() {
             };
             reader.onerror = () => { errorEl.textContent = 'Error reading the scroll file.'; };
             reader.readAsText(file);
+        }
+
+        function setupSaveFileDropzone() {
+            const fileInput = document.getElementById('fileInput');
+            const wrap = fileInput.parentElement;
+            const dropzone = document.createElement('button');
+            dropzone.type = 'button';
+            dropzone.className = 'save-file-dropzone';
+            dropzone.innerHTML = '<span class="save-file-dropzone-title">Choose Save Scroll</span><span class="save-file-dropzone-subtitle">Click or drag .sav here</span>';
+            fileInput.classList.add('save-file-input-hidden');
+            wrap.appendChild(dropzone);
+
+            dropzone.addEventListener('click', () => fileInput.click());
+            ['dragenter', 'dragover'].forEach(type => dropzone.addEventListener(type, event => {
+                event.preventDefault();
+                dropzone.classList.add('drag-over');
+            }));
+            ['dragleave', 'drop'].forEach(type => dropzone.addEventListener(type, () => dropzone.classList.remove('drag-over')));
+            dropzone.addEventListener('drop', event => {
+                event.preventDefault();
+                readSaveFile(event.dataTransfer.files[0]);
+            });
+        }
+
+        document.getElementById('fileInput').addEventListener('change', function(event) {
+            readSaveFile(event.target.files[0]);
         });
+        setupSaveFileDropzone();
         
         document.getElementById('inputJson').addEventListener('input', function(e) {
             const text = e.target.value.trim();
@@ -1481,11 +2518,23 @@ export function initLegacyApp() {
             const itemArray = Object.values(itemDB).sort((a, b) => a.name.localeCompare(b.name));
             itemArray.forEach(item => {
                 const itemEl = document.createElement('a');
+                const icon = document.createElement('img');
+                const name = document.createElement('span');
                 itemEl.href = '#';
-                itemEl.textContent = item.name;
                 itemEl.dataset.itemId = item.id;
-                itemEl.className = `block p-1 rounded hover:bg-stone-700/50 text-sm truncate cursor-pointer quality-${item.quality}`;
+                itemEl.className = `codex-item quality-${item.quality}`;
                 itemEl.title = item.name;
+                icon.src = getLocalIconUrl(item.icon) || '/murloc-icons/unknown_icon.png';
+                icon.alt = '';
+                icon.loading = 'lazy';
+                icon.draggable = false;
+                icon.addEventListener('error', () => {
+                    if (!icon.src.endsWith('/murloc-icons/unknown_icon.png')) {
+                        icon.src = '/murloc-icons/unknown_icon.png';
+                    }
+                });
+                name.textContent = item.name;
+                itemEl.append(icon, name);
                 itemListEl.appendChild(itemEl);
             });
             initializeFilters();
@@ -1533,7 +2582,10 @@ export function initLegacyApp() {
             // --- Add event listeners ---
             document.querySelectorAll('#itemSearch, .filter-select').forEach(el => {
                 const eventType = el.tagName === 'SELECT' ? 'change' : 'input';
-                el.addEventListener(eventType, applyFilters);
+                el.addEventListener(eventType, () => {
+                    resetCodexFilterOnSlotDeselect = false;
+                    applyFilters();
+                });
             });
 
             // Add listener to change the select box color on selection
@@ -1608,7 +2660,7 @@ export function initLegacyApp() {
                 // An item is shown only if it matches ALL filter criteria
                 if (dropdownQualityMatch && dropdownTypeMatch && dropdownLocMatch && dropdownMatMatch &&
                     nameMatch && searchQualityMatch && searchTypeMatch && searchLocMatch && searchMatMatch) {
-                    itemLink.style.display = 'block';
+                    itemLink.style.display = '';
                 } else {
                     itemLink.style.display = 'none';
                 }
@@ -1672,7 +2724,8 @@ export function initLegacyApp() {
                         populateBagUI(bagKey, readBagFromUI(bagKey));
                     } else {
                         // Equipment or inventory slots when active via icon click.
-                        if (slotContainer.closest('#equipmentSlots')) {
+                        const isEquipmentSlot = !!slotContainer.closest('#equipmentSlots');
+                        if (isEquipmentSlot) {
                             // Enforce equipment compatibility for click-to-assign.
                             if (!isItemAllowedInEquipmentSlot(newItem, slotType)) {
                                 console.info(`Item "${newItemId}" is not valid for equipment slot "${slotType}".`);
@@ -1681,18 +2734,12 @@ export function initLegacyApp() {
                             }
                         }
                         updateSlotDisplay(slotContainer, newItemId, slotType);
+                        if (isEquipmentSlot) {
+                            renderCurrentAbilityPicker();
+                            renderEquipmentStats();
+                        }
                     }
                     deselectActiveSlot();
-                } else {
-                    navigator.clipboard.writeText(target.dataset.itemId).then(() => {
-                        const originalText = target.title;
-                        target.textContent = 'Copied!';
-                        target.classList.add('text-green-400');
-                        setTimeout(() => {
-                            target.textContent = originalText;
-                            target.classList.remove('text-green-400');
-                        }, 1500);
-                    });
                 }
             }
         });
@@ -1712,47 +2759,12 @@ export function initLegacyApp() {
         });
 
         itemListEl.addEventListener('mousemove', e => {
-            const tooltip = document.getElementById('tooltip');
-            if (!tooltip.classList.contains('hidden')) {
-                tooltip.style.left = `${e.pageX + 15}px`;
-                tooltip.style.top = `${e.pageY + 15}px`;
-            }
+            moveTooltip(e);
         });
 
         // --- DRAG & DROP FROM ITEM CODEX ---
         (function initializeCodexDragAndDrop() {
-            // Make codex items draggable (works for initially populated items)
-            function enableCodexDraggable() {
-                const links = itemListEl.querySelectorAll('a[data-item-id]');
-                links.forEach(link => {
-                    link.setAttribute('draggable', 'true');
-                });
-            }
-
-            // Initial call after codex population (itemDB-based)
-            if (itemListEl) {
-                enableCodexDraggable();
-
-                // Re-apply draggable when filters toggle visibility (links remain same nodes)
-                const observer = new MutationObserver(() => enableCodexDraggable());
-                observer.observe(itemListEl, { childList: true, subtree: false });
-            }
-
-            // Codex dragstart / dragend: preserve click behavior
-            itemListEl.addEventListener('dragstart', (event) => {
-                const link = event.target.closest('a[data-item-id]');
-                if (!link || !event.dataTransfer) return;
-                const itemId = link.dataset.itemId;
-                if (!itemId) return;
-
-                event.dataTransfer.setData('text/plain', itemId);
-                event.dataTransfer.setData('application/x-murloc-item-id', itemId);
-                event.dataTransfer.effectAllowed = 'copy';
-            });
-
-            itemListEl.addEventListener('dragend', () => {
-                // No persistent codex drag visuals to clear at present
-            });
+            itemListEl.addEventListener('dragstart', event => event.preventDefault());
 
             // Global delegated drop-target handling for all .item-slot-container
             document.addEventListener('dragover', (event) => {
@@ -1765,7 +2777,7 @@ export function initLegacyApp() {
                 if (!hasItemId) return;
 
                 event.preventDefault();
-                event.dataTransfer.dropEffect = 'copy';
+                event.dataTransfer.dropEffect = draggedItemSourceSlot ? 'move' : 'copy';
 
                 slotContainer.classList.add('drop-target-hover');
             });
@@ -1874,6 +2886,8 @@ export function initLegacyApp() {
                     updateSlotDisplay(slotContainer, itemId, 'Bag');
                     const updatedBagData = readBagFromUI(bagKey);
                     populateBagUI(bagKey, updatedBagData);
+                    clearDraggedSource(slotContainer, dataTransfer);
+                    clearItemDragState();
                     return;
                 }
 
@@ -1902,6 +2916,10 @@ export function initLegacyApp() {
                     }
 
                     updateSlotDisplay(slotContainer, itemId, slotType);
+                    clearDraggedSource(slotContainer, dataTransfer);
+                    clearItemDragState();
+                    renderCurrentAbilityPicker();
+                    renderEquipmentStats();
                     return;
                 }
 
@@ -1917,6 +2935,9 @@ export function initLegacyApp() {
                     }
 
                     updateSlotDisplay(slotContainer, itemId, 'Inventory');
+                    applyDraggedQuantity(slotContainer, dataTransfer);
+                    clearDraggedSource(slotContainer, dataTransfer);
+                    clearItemDragState();
                     return;
                 }
             });

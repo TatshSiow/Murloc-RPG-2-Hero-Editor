@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" height="44.0px" width="44.0px" xmlns="http://www.w3.org/2000/svg">
+  <g transform="matrix(1.0, 0.0, 0.0, 1.0, 0.0, 0.0)">
+    <path d="M41.0 36.9 L7.0 36.9 7.0 3.0 41.0 3.0 41.0 36.9" fill="#010721" fill-opacity="0.8" fill-rule="evenodd" stroke="none"/>
+    <pattern height="14" id="PatternID_2627_1" overflow="visible" patternTransform="matrix(1.0, 0.0, 0.0, 1.0, 0.0, 0.0)" patternUnits="userSpaceOnUse" viewBox="0 0 16 14" width="16">
+      <image height="14" width="16" xlink:href="data:image/PNG;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAOCAYAAAAmL5yKAAAAm0lEQVR42mNgwA4EoVgRiA2B2BEPxqkRJFkIxBMJYJyaG4F449evXz+C8L1791AwTJyg5oULF4IUbYTihVgw3ACYfxNBEmiaJ0K9gw1j9fdGqOaDUM0gQwNxBSJ6aIMNmDt3Lsz2QiTFhlgwXgMWQm03hKrBhgkaEAiVF8SBCRrgiKwYV6pDN2Dh0qVLP0ID0BGfZmINYBi8BgAAmbh2aA++CoYAAAAASUVORK5CYII="/>
+    </pattern>
+    <path d="M0.0 0.0 L16.0 0.0 16.0 14.0 0.0 14.0 0.0 0.0" style="fill:url(#PatternID_2627_1)"/>
+    <pattern height="16" id="PatternID_2627_2" overflow="visible" patternTransform="matrix(0.0, 1.0, -1.0, 0.0, 32.0, 0.0)" patternUnits="userSpaceOnUse" viewBox="0 0 9 16" width="9">
+      <image height="16" width="9" xlink:href="data:image/PNG;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAQCAYAAADESFVDAAAAMklEQVR42mNgYGBwBOKJ7969+wikFwJxIVTMEIgVgViQYYAUPX36dNAp+vr166gi3IoAy6lkbec0HnsAAAAASUVORK5CYII="/>
+    </pattern>
+    <path d="M32.0 0.0 L32.0 9.0 16.0 9.0 16.0 0.0 32.0 0.0" style="fill:url(#PatternID_2627_2)"/>
+    <pattern height="14" id="PatternID_2627_3" overflow="visible" patternTransform="matrix(1.0, 0.0, 0.0, 1.0, 32.0, 0.0)" patternUnits="userSpaceOnUse" viewBox="0 0 12 14" width="12">
+      <image height="14" width="12" xlink:href="data:image/PNG;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAOCAYAAAAbvf3sAAAAjElEQVR42sXQwQ2AIAxA0a7ACI7ACI7gCIzgCIzgABx6YABG48BdisVUUrhq8hMTfBYAANiVrGirGRDPtcjXHMMHlVLyqvoJjgiVEqUg2h6cSp63JJHnKe9BD5Fj2BAiZn5vwA431IHjv6YQwgdsnFWm0RQUgNbayc0EqWCGlmBEfUoDMUYVgDLlB3ADdCJ2CZD6RikAAAAASUVORK5CYII="/>
+    </pattern>
+    <path d="M44.0 14.0 L32.0 14.0 32.0 0.0 44.0 0.0 44.0 14.0" style="fill:url(#PatternID_2627_3)"/>
+    <pattern height="16" id="PatternID_2627_4" overflow="visible" patternTransform="matrix(1.0, 0.0, 0.0, 1.0, 0.0, 14.0)" patternUnits="userSpaceOnUse" viewBox="0 0 9 16" width="9">
+      <image height="16" width="9" xlink:href="data:image/PNG;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAQCAYAAADESFVDAAAANElEQVR42mNgYGAQBGJFIDYEYkcgLgTihUuXLv0IpCdCxQaForlz5w46RVOnTh10igYwnACS0FUBH+ryZwAAAABJRU5ErkJggg=="/>
+    </pattern>
+    <path d="M0.0 14.0 L9.0 14.0 9.0 30.0 0.0 30.0 0.0 14.0" style="fill:url(#PatternID_2627_4)"/>
+    <pattern height="16" id="PatternID_2627_5" overflow="visible" patternTransform="matrix(1.0, 0.0, 0.0, 1.0, 35.0, 14.0)" patternUnits="userSpaceOnUse" viewBox="0 0 9 16" width="9">
+      <image height="16" width="9" xlink:href="data:image/PNG;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAQCAYAAADESFVDAAAANElEQVR42mNgYGAQBGJFIDYEYkcgLgTihUuXLv0IpCdCxQaForlz5w46RVOnTh10igYwnACS0FUBH+ryZwAAAABJRU5ErkJggg=="/>
+    </pattern>
+    <path d="M44.0 30.0 L35.0 30.0 35.0 14.0 44.0 14.0 44.0 30.0" style="fill:url(#PatternID_2627_5)"/>
+    <pattern height="14" id="PatternID_2627_6" overflow="visible" patternTransform="matrix(1.0, 0.0, 0.0, 1.0, 0.0, 30.0)" patternUnits="userSpaceOnUse" viewBox="0 0 16 14" width="16">
+      <image height="14" width="16" xlink:href="data:image/PNG;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAOCAYAAAAmL5yKAAAAl0lEQVR42s3SsQ2AIBCF4VvBERyBERyBERzBISwtLCgpGIHR3MDDPJITDtROkz9GNJ8nkYho4EbOcBO3cME5d/B5x1r3+DcQOItnPgFx3bYERFybHqJOkAAgAWsW98sqYMa3R4FEQLtSBVi88YakPZF5768ykJEMzAIJYgItak0hoV5UTmEam9WKNCRDbyINkdBTzX/jVSfskFw0+OI5QwAAAABJRU5ErkJggg=="/>
+    </pattern>
+    <path d="M0.0 30.0 L16.0 30.0 16.0 44.0 0.0 44.0 0.0 30.0" style="fill:url(#PatternID_2627_6)"/>
+    <pattern height="14" id="PatternID_2627_7" overflow="visible" patternTransform="matrix(1.0, 0.0, 0.0, 1.0, 32.0, 30.0)" patternUnits="userSpaceOnUse" viewBox="0 0 12 14" width="12">
+      <image height="14" width="12" xlink:href="data:image/PNG;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAOCAYAAAAbvf3sAAAAlklEQVR42r2PQQ3DMAxFTcEQAiEQCqEQCiEQduixhx1yzCEQAmGQymB25U0/ltfjLD0lit+3HKK5WEhCFhahCL3Wesr5tLc/BhgC2lgtMKIAB9M3k8Z+HFNgAVYTC8oQ0GHXRenAEF4gDxuSqLV2Rjj5YRvo2tNUTwc5fQLlhs3L/tOeDPI3kH+QIpmg4eFIJtfgO1HrDfvyVYB5+crkAAAAAElFTkSuQmCC"/>
+    </pattern>
+    <path d="M44.0 44.0 L32.0 44.0 32.0 30.0 44.0 30.0 44.0 44.0" style="fill:url(#PatternID_2627_7)"/>
+    <pattern height="16" id="PatternID_2627_8" overflow="visible" patternTransform="matrix(0.0, -1.0, 1.0, 0.0, 16.0, 44.0)" patternUnits="userSpaceOnUse" viewBox="0 0 9 16" width="9">
+      <image height="16" width="9" xlink:href="data:image/PNG;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAQCAYAAADESFVDAAAANElEQVR42mNgYGAQBGJFIDYEYkcgLgTihUuXLv0IpCdCxQaForlz5w46RVOnTh10igYwnACS0FUBH+ryZwAAAABJRU5ErkJggg=="/>
+    </pattern>
+    <path d="M16.0 44.0 L16.0 35.0 32.0 35.0 32.0 44.0 16.0 44.0" style="fill:url(#PatternID_2627_8)"/>
+  </g>
+</svg>
