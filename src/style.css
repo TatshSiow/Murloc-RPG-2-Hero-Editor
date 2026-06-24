@@ -3077,13 +3077,14 @@ body.wow-page {
 }
 
 .hero-source-details {
-    --hero-detail-label-w: calc(100cqw * 42 / var(--hero-bars-render-w));
-    --hero-detail-value-w: calc(100cqw * 76 / var(--hero-bars-render-w));
+    --hero-detail-label-w: calc(100cqw * 58 / var(--hero-bars-render-w));
+    --hero-detail-value-w: calc(100cqw * 84 / var(--hero-bars-render-w));
+    --hero-detail-row-h: calc(100cqw * 24 / var(--hero-bars-render-w));
     min-width: 0;
     width: min(100%, calc(var(--hero-bars-render-w) * 1px));
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 3px;
     box-sizing: border-box;
     padding: 8px 10px 9px;
     border: 1px solid #34322d;
@@ -3096,8 +3097,9 @@ body.wow-page {
 .hero-source-meta {
     display: grid;
     grid-template-columns: var(--hero-detail-label-w) minmax(0, 1fr);
+    grid-auto-rows: var(--hero-detail-row-h);
     gap: 3px 8px;
-    width: min(100%, calc(var(--hero-bars-render-w) * 1px));
+    width: 100%;
     color: #b9b2a0;
     font: calc(100cqw * 18 / var(--hero-bars-render-w))/1.15 var(--wow-font-body);
 }
@@ -3112,35 +3114,43 @@ body.wow-page {
     text-shadow: 2px 2px 0 #000, 0 0 5px #000;
 }
 
+.hero-source-meta > span,
+.hero-source-meta > strong,
+.hero-source-level-edit,
+.hero-source-xp-edit {
+    min-height: var(--hero-detail-row-h);
+    align-items: center;
+}
+
 .hero-source-xp-wrap {
     width: 100%;
     display: grid;
-    grid-template-columns: calc(var(--hero-detail-label-w) + var(--hero-detail-value-w) + 6px) minmax(0, 1fr);
+    grid-template-columns: calc(var(--hero-detail-label-w) + var(--hero-detail-value-w) + 8px) minmax(0, 1fr);
     align-items: center;
     gap: 10px;
+    min-height: var(--hero-detail-row-h);
 }
 
 .hero-source-level-edit {
     display: grid;
     grid-template-columns: var(--hero-detail-label-w) var(--hero-detail-value-w);
-    align-items: center;
-    gap: 6px;
-    width: calc(var(--hero-detail-label-w) + var(--hero-detail-value-w) + 6px);
+    gap: 8px;
+    width: calc(var(--hero-detail-label-w) + var(--hero-detail-value-w) + 8px);
     max-width: 100%;
     color: #b9b2a0;
     font: calc(100cqw * 17 / var(--hero-bars-render-w))/1 var(--wow-font-body);
 }
 
 .hero-source-level-detail-input {
-    width: calc(100cqw * 42 / var(--hero-bars-render-w));
+    width: var(--hero-detail-value-w);
     color: #ffd100;
     font-size: calc(100cqw * 18 / var(--hero-bars-render-w));
-    text-align: right;
+    text-align: left;
 }
 
 .hero-source-xp-track {
     position: relative;
-    height: 30px;
+    height: var(--hero-detail-row-h);
     background: url("/murloc-ui/xp-bar.png") left center / 100% 16px no-repeat;
     overflow: visible;
 }
@@ -3148,7 +3158,7 @@ body.wow-page {
 .hero-source-xp-fill {
     position: absolute;
     left: 2px;
-    top: 8px;
+    top: calc((var(--hero-detail-row-h) - 13px) / 2);
     height: 13px;
     width: calc((100% - 4px) * var(--hero-xp-pct, 0));
     border-radius: 0;
@@ -3194,19 +3204,18 @@ body.wow-page {
 .hero-source-xp-edit {
     display: grid;
     grid-template-columns: var(--hero-detail-label-w) var(--hero-detail-value-w);
-    align-items: center;
-    gap: 6px;
-    width: calc(var(--hero-detail-label-w) + var(--hero-detail-value-w) + 6px);
+    gap: 8px;
+    width: calc(var(--hero-detail-label-w) + var(--hero-detail-value-w) + 8px);
     max-width: 100%;
     color: #b9b2a0;
     font: calc(100cqw * 17 / var(--hero-bars-render-w))/1 var(--wow-font-body);
 }
 
 .hero-source-xp-input {
-    width: calc(100cqw * 70 / var(--hero-bars-render-w));
+    width: 100%;
     color: #ffd100;
     font-size: calc(100cqw * 18 / var(--hero-bars-render-w));
-    text-align: right;
+    text-align: left;
 }
 
 @media (max-width: 900px) {
