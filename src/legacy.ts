@@ -307,18 +307,33 @@ export function initLegacyApp() {
         }
         
         function formatCurrency(copperValue) {
+            const money = formatMoney(copperValue);
+            return money ? `<div class="text-stone-300">Sell Price: ${money}</div>` : '';
+        }
+
+        function formatMoney(copperValue) {
             if (isNaN(copperValue) || copperValue <= 0) return '';
             const gold = Math.floor(copperValue / 10000);
             const silver = Math.floor((copperValue % 10000) / 100);
             const copper = copperValue % 100;
-            
+
             let parts = [];
             if (gold > 0) parts.push(`<span>${gold} <img src="/murloc-ui/money-gold.png" class="coin inline-block"></span>`);
             if (silver > 0) parts.push(`<span>${silver} <img src="/murloc-ui/money-silver.png" class="coin inline-block"></span>`);
             if (copper > 0) parts.push(`<span>${copper} <img src="/murloc-ui/money-copper.png" class="coin inline-block"></span>`);
+            return parts.join(' ');
+        }
 
-            if (parts.length === 0) return '';
-            return `<div class="text-stone-300">Sell Price: ${parts.join(' ')}</div>`;
+        function formatSkillMoney(copperValue) {
+            if (isNaN(copperValue) || copperValue <= 0) return '';
+            const gold = Math.floor(copperValue / 10000);
+            const silver = Math.floor((copperValue % 10000) / 100);
+            const copper = copperValue % 100;
+            const parts = [];
+            if (gold > 0) parts.push(`<span>${gold}<img src="/murloc-ui/money-gold.png" class="ability-picker-money-icon" alt="gold"></span>`);
+            if (silver > 0) parts.push(`<span>${silver}<img src="/murloc-ui/money-silver.png" class="ability-picker-money-icon" alt="silver"></span>`);
+            if (copper > 0) parts.push(`<span>${copper}<img src="/murloc-ui/money-copper.png" class="ability-picker-money-icon" alt="copper"></span>`);
+            return parts.join('');
         }
 
         function getXpForLevel(level) {
@@ -505,12 +520,20 @@ export function initLegacyApp() {
                 const input = event.target.closest('input[type="checkbox"]');
                 if (!input) return;
 
+                const ability = abilityDB[input.value];
+                if (input.checked && !isAbilityAllowedForCurrentLevel(ability)) {
+                    input.checked = false;
+                    showToast('Level restriction: requires level ' + ability.level + '.');
+                    renderAbilityPicker(textareaId, textarea.value.trim() ? textarea.value.split('\n').map(value => value.trim()).filter(Boolean) : []);
+                    return;
+                }
+
                 const selected = textarea.value.trim()
                     ? textarea.value.split('\n').map(value => value.trim()).filter(Boolean)
                     : [];
                 const nextValues = input.checked
                     ? [...new Set([...selected, input.value])]
-                    : selected.filter(value => value !== input.value);
+                    : selected.filter(value => value !== input.value || value === 'abil_attack');
                 const next = orderLearnedAbilities(nextValues);
 
                 textarea.value = next.join('\n');
@@ -956,6 +979,14 @@ export function initLegacyApp() {
             return ability.id === 'abil_attack' || (ability.icon && ability.icon !== 'none');
         }
 
+        function isAbilityAllowedForCurrentLevel(ability) {
+            return (Number(ability?.level) || 0) <= getCurrentPlayerLevel();
+        }
+
+        function isAttackAbility(abilityId) {
+            return abilityId === 'abil_attack';
+        }
+
         function getSpellbookAbilityIds(values) {
             const playerClass = getCurrentPlayerClass();
             const ids = Object.values(abilityDB)
@@ -969,7 +1000,7 @@ export function initLegacyApp() {
         }
 
         function orderLearnedAbilities(values) {
-            const learned = new Set(values || []);
+            const learned = new Set(['abil_attack', ...(values || [])]);
             return getSpellbookAbilityIds(values).filter(value => learned.has(value));
         }
 
@@ -987,24 +1018,35 @@ export function initLegacyApp() {
             picker.innerHTML = '';
             abilityIds.slice(page * pageSize, page * pageSize + pageSize).forEach(abilityId => {
                 const ability = abilityDB[abilityId] || { id: abilityId, name: abilityId };
-                const learned = selectedSet.has(abilityId);
+                const learned = isAttackAbility(abilityId) || selectedSet.has(abilityId);
+                const levelLocked = !learned && !isAbilityAllowedForCurrentLevel(ability);
+                const requiredLevel = ability.level || 1;
+                const levelValue = levelLocked ? `<span class="text-red-600">${requiredLevel}</span>` : requiredLevel;
+                const requirementHtml = isAttackAbility(abilityId)
+                    ? ''
+                    : `<span class="ability-picker-requirement">Requires level ${levelValue}</span>`;
+                const costHtml = Number(ability.val) > 0
+                    ? `<span class="ability-picker-cost">${formatSkillMoney(ability.val)}</span>`
+                    : '';
                 const description = formatAbilityDescription(ability);
                 const abilityIcon = getAbilityIcon(ability);
                 const icon = abilityIcon && abilityIcon !== 'none'
                     ? getLocalIconUrl(abilityIcon)
                     : '/murloc-icons/icon_empty.png';
                 const row = document.createElement('label');
-                row.className = 'ability-picker-row';
+                row.className = `ability-picker-row${levelLocked ? ' ability-picker-row-locked' : ''}`;
                 row.innerHTML = `
-                    <input type="checkbox" value="${abilityId}" ${learned ? 'checked' : ''}>
+                    <input type="checkbox" value="${abilityId}" ${learned ? 'checked' : ''} ${isAttackAbility(abilityId) ? 'disabled' : ''}>
                     <span class="ability-picker-icon">
                         <img src="${icon}" alt="" onerror="this.src='/murloc-icons/unknown_icon.png'">
                     </span>
                         <span class="ability-picker-body">
                             <span class="ability-picker-title">${ability.name || ability.id}</span>
+                            ${requirementHtml}
                             <span class="ability-picker-meta">Target: ${ability.target || 'none'}</span>
                             <span class="ability-picker-desc">${description}</span>
                         </span>
+                        ${costHtml}
                     `;
                 row.addEventListener('mouseenter', event => showAbilityTooltip(ability, icon, description, event));
                 row.addEventListener('mousemove', event => moveTooltip(event));
@@ -1017,7 +1059,7 @@ export function initLegacyApp() {
                 controls.className = 'ability-picker-controls';
                 controls.innerHTML = `
                     <button type="button" class="ability-picker-page-btn ability-picker-page-prev" aria-label="Previous ability page" ${page === 0 ? 'disabled' : ''}></button>
-                    <span class="ability-picker-page-label">(${page + 1}/${maxPage + 1})</span>
+                    <span class="ability-picker-page-label">${page + 1}/${maxPage + 1}</span>
                     <button type="button" class="ability-picker-page-btn ability-picker-page-next" aria-label="Next ability page" ${page === maxPage ? 'disabled' : ''}></button>
                 `;
                 controls.querySelector('.ability-picker-page-prev')?.addEventListener('click', () => {
@@ -1110,7 +1152,7 @@ export function initLegacyApp() {
             const picker = document.getElementById(`${textareaId}Picker`);
             if (picker && picker.classList.contains('ability-picker')) {
                 const raw = document.getElementById(textareaId).value.trim();
-                return raw ? raw.split('\n').map(value => value.trim()).filter(Boolean) : [];
+                return orderLearnedAbilities(raw ? raw.split('\n').map(value => value.trim()).filter(Boolean) : []);
             }
 
             if (picker && picker.classList.contains('quest-picker')) {
