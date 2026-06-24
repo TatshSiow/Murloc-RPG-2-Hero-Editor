@@ -1160,7 +1160,6 @@
         .codex-item:hover {
             background: rgba(248, 214, 109, 0.08);
             box-shadow: 0 0 6px rgba(0, 0, 0, 1);
-            transform: translateX(1px);
         }
 
         .wow-tooltip {
@@ -2129,15 +2128,18 @@ body.wow-page {
 #itemList > a {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 3px 6px;
-    border-radius: 3px;
-    font-size: 12px;
+    gap: 8px;
+    min-height: 36px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    font-size: 14px;
     line-height: 1.2;
     text-decoration: none;
     overflow: hidden;
     white-space: nowrap;
     cursor: grab;
+    user-select: none;
+    -webkit-user-drag: none;
 }
 
 #itemList > a:active {
@@ -2145,9 +2147,9 @@ body.wow-page {
 }
 
 #itemList > a img {
-    flex: 0 0 22px;
-    width: 22px;
-    height: 22px;
+    flex: 0 0 30px;
+    width: 30px;
+    height: 30px;
     border: 1px solid #4b3a25;
     border-radius: 3px;
     background: #050505;
@@ -2806,7 +2808,8 @@ body.wow-page {
     bottom: 4px;
 }
 
-#bagsSection .empty-slot .quantity-container {
+#bagsSection .empty-slot .quantity-container,
+#bagsSection .single-stack-slot .quantity-container {
     display: none;
 }
 

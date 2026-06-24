@@ -169,28 +169,34 @@ export function initLegacyApp() {
          * @returns {boolean} true if the item is allowed in that equipment slot.
          */
         function isItemAllowedInEquipmentSlot(item, slotType) {
-            if (!item) return false;
+            return !getEquipmentRestrictionReason(item, slotType);
+        }
+
+        function getEquipmentRestrictionReason(item, slotType) {
+            if (!item) return 'Unknown item.';
 
             const normalizedSlot = normalizeEquipmentSlotKey(slotType);
-            if (!normalizedSlot) return false;
+            if (!normalizedSlot) return 'Unknown equipment slot.';
+            if (!isItemAllowedForCurrentClass(item)) return 'Class restriction: only ' + firstToUpper(item.clas) + ' can equip this item.';
+            if (!isItemAllowedForCurrentLevel(item)) return 'Level restriction: requires level ' + item.level + '.';
 
             const itemType = (item.type || '').toLowerCase();
             const itemLoc = (item.loc || '').toLowerCase();
 
             // Weapon: only weapon-type items.
             if (normalizedSlot === 'weapon') {
-                return itemType === 'weapon';
+                return itemType === 'weapon' ? '' : 'Slot restriction: only weapons can go in the Weapon slot.';
             }
 
             // Jewelry / trinket slots rely on loc.
             if (normalizedSlot === 'neck') {
-                return itemLoc === 'neck';
+                return itemLoc === 'neck' ? '' : 'Slot restriction: this item is not for the Neck slot.';
             }
             if (normalizedSlot === 'ring') {
-                return itemLoc === 'ring';
+                return itemLoc === 'ring' ? '' : 'Slot restriction: this item is not for the Ring slot.';
             }
             if (normalizedSlot === 'trinket') {
-                return itemLoc === 'trinket';
+                return itemLoc === 'trinket' ? '' : 'Slot restriction: this item is not for the Trinket slot.';
             }
 
             // Standard armor slots: require armor type plus matching loc.
@@ -205,12 +211,41 @@ export function initLegacyApp() {
                 'legs',
                 'boots'
             ].includes(normalizedSlot)) {
-                if (itemType !== 'armor') return false;
-                return itemLoc === normalizedSlot;
+                if (itemType !== 'armor') return 'Slot restriction: only armor can go in the ' + slotType + ' slot.';
+                if (!isArmorMaterialAllowedForCurrentClass(item)) return 'Material restriction: ' + firstToUpper(item.mat) + ' armor cannot be worn by ' + firstToUpper(getCurrentPlayerClass()) + '.';
+                return itemLoc === normalizedSlot ? '' : 'Slot restriction: this item is not for the ' + slotType + ' slot.';
             }
 
             // Non-equipment slots should not route here; treat as incompatible.
+            return 'This is not an equipment slot.';
+        }
+
+        function isItemAllowedForCurrentClass(item) {
+            const itemClass = String(item?.clas || 'default').trim().toLowerCase();
+            if (!itemClass || itemClass === 'default' || itemClass === 'none') return true;
+
+            const playerClass = String(document.getElementById('playerClass')?.value || currentLoadedSaveData?.playerClass || '').trim().toLowerCase();
+            return itemClass === playerClass;
+        }
+
+        function isItemAllowedForCurrentLevel(item) {
+            return (Number(item?.level) || 0) <= getCurrentPlayerLevel();
+        }
+
+        function isArmorMaterialAllowedForCurrentClass(item) {
+            const loc = String(item?.loc || '').toLowerCase();
+            const mat = String(item?.mat || 'none').toLowerCase();
+            if (mat === 'none' || ['ring', 'trinket', 'back', 'neck'].includes(loc)) return true;
+
+            const playerClass = String(document.getElementById('playerClass')?.value || currentLoadedSaveData?.playerClass || '').trim().toLowerCase();
+            if (mat === 'leather') return true;
+            if (mat === 'mail') return playerClass !== 'scout';
+            if (mat === 'plate') return playerClass === 'barbarian';
             return false;
+        }
+
+        function getCurrentPlayerLevel() {
+            return parseInt(document.getElementById('playerLevel')?.value, 10) || getLevelForXp(currentLoadedSaveData?.playerXP || 0);
         }
 
         function filterCodexForEquipmentSlot(slotType) {
@@ -258,6 +293,11 @@ export function initLegacyApp() {
         function getItemStackSize(itemId) {
             const item = getItem(itemId);
             return item ? item.stack || 1 : 1;
+        }
+
+        function clampItemQuantity(itemId, quantity) {
+            if (!itemId) return 0;
+            return Math.min(Math.max(parseInt(quantity, 10) || 1, 1), getItemStackSize(itemId));
         }
 
         function setupAppColumns() {
@@ -1122,6 +1162,7 @@ export function initLegacyApp() {
         function updateSlotDisplay(slotContainer, itemId, slotType) {
             const item = getItem(itemId);
             slotContainer.classList.toggle('empty-slot', !item);
+            slotContainer.classList.toggle('single-stack-slot', !!item && (item.stack || 1) <= 1);
             slotContainer.draggable = false;
             
             const iconContainer = slotContainer.querySelector('.icon-container');
@@ -1146,9 +1187,7 @@ export function initLegacyApp() {
                 
                 if (qtyInput) {
                     qtyInput.max = item.stack || 1;
-                    if (parseInt(qtyInput.value) === 0 || isNaN(parseInt(qtyInput.value))) {
-                        qtyInput.value = 1;
-                    }
+                    qtyInput.value = clampItemQuantity(item.id, qtyInput.value);
                 }
             } else if (iconContainer && nameDisplay && idInput) { // Empty the slot
                 const emptyIcon = emptySlotIcons[slotType] || emptySlotIcons.Inventory;
@@ -1240,7 +1279,9 @@ export function initLegacyApp() {
                 const index = parseInt(wrapper.dataset.slotIndex, 10);
                 const input = wrapper.querySelector('.item-id-input');
                 if (input && !isNaN(index) && index < equipmentData.length) {
-                    equipmentData[index] = input.value.trim() || null;
+                    const itemId = input.value.trim();
+                    const item = getItem(itemId);
+                    equipmentData[index] = itemId && isItemAllowedInEquipmentSlot(item, getSlotTypeFromContainer(input.closest('.item-slot-container'))) ? itemId : null;
                 }
             });
             return equipmentData;
@@ -1275,7 +1316,7 @@ export function initLegacyApp() {
                         <input
                             type="number"
                             class="item-qty-input bg-[rgba(10,5,2,0.8)] border border-[#4d2c1a] text-stone-200 rounded p-1.5 focus:outline-none focus:border-[#ffa500] font-mono text-xs text-right w-8"
-                            value="${Math.min(Math.max(quantity, 0), maxStack)}"
+                            value="${clampItemQuantity(itemId, quantity)}"
                             min="0"
                             max="${maxStack}"
                         >
@@ -1350,7 +1391,7 @@ export function initLegacyApp() {
                 if (!itemId) {
                     finalBagData.push(["empty", 0]);
                 } else {
-                    finalBagData.push([itemId, isNaN(quantity) ? 0 : quantity]);
+                    finalBagData.push([itemId, clampItemQuantity(itemId, quantity)]);
                 }
             });
             return finalBagData;
@@ -1654,10 +1695,61 @@ export function initLegacyApp() {
             qtyInput.value = Math.min(qty, parseInt(qtyInput.max, 10) || qty);
         }
 
-        function clearDraggedSource(targetSlot, dataTransfer) {
+        function getDraggedSourceSlot(dataTransfer) {
             const sourceId = dataTransfer?.getData('application/x-murloc-source-slot');
-            const sourceSlot = draggedItemSourceSlot ||
+            return draggedItemSourceSlot ||
                 (sourceId ? document.querySelector(`[data-drag-source-id="${sourceId}"]`) : null);
+        }
+
+        function isBagInventorySlot(slot) {
+            return !!slot?.closest('#bag1-slots, #bag2-slots, #bag3-slots');
+        }
+
+        function isSwappableItemSlot(slot) {
+            return !!slot?.closest('#equipmentSlots') || isBagInventorySlot(slot);
+        }
+
+        function getSlotQuantity(slot) {
+            return slot.querySelector('.item-qty-input')?.value || '';
+        }
+
+        function setSlotQuantity(slot, quantity) {
+            const input = slot.querySelector('.item-qty-input');
+            if (!input) return;
+            input.value = quantity || 1;
+            input.value = Math.min(parseInt(input.value, 10) || 1, parseInt(input.max, 10) || 1);
+        }
+
+        function trySwapDraggedSource(targetSlot, dataTransfer, targetItemId, targetSlotType) {
+            const sourceSlot = getDraggedSourceSlot(dataTransfer);
+            const currentTargetItemId = targetSlot.querySelector('.item-id-input')?.value.trim();
+            if (!sourceSlot || sourceSlot === targetSlot || !currentTargetItemId) return false;
+            if (!isSwappableItemSlot(sourceSlot) || !isSwappableItemSlot(targetSlot)) return false;
+
+            const sourceType = getSlotTypeFromContainer(sourceSlot);
+            if (sourceSlot.closest('#equipmentSlots')) {
+                const restrictionReason = getEquipmentRestrictionReason(getItem(currentTargetItemId), sourceType);
+                if (restrictionReason) {
+                    if (typeof showToast === 'function') showToast(restrictionReason);
+                    return true;
+                }
+            }
+
+            const targetQty = getSlotQuantity(targetSlot);
+            const sourceQty = dataTransfer?.getData('application/x-murloc-item-qty') || getSlotQuantity(sourceSlot);
+            updateSlotDisplay(targetSlot, targetItemId, targetSlotType);
+            setSlotQuantity(targetSlot, sourceQty);
+            updateSlotDisplay(sourceSlot, currentTargetItemId, sourceType);
+            setSlotQuantity(sourceSlot, targetQty);
+            if (sourceSlot.closest('#equipmentSlots') || targetSlot.closest('#equipmentSlots')) {
+                renderCurrentAbilityPicker();
+                renderEquipmentStats();
+            }
+            return true;
+        }
+
+        function clearDraggedSource(targetSlot, dataTransfer) {
+            const sourceSlot = getDraggedSourceSlot(dataTransfer);
             if (!sourceSlot || sourceSlot === targetSlot) return;
             const sourceType = getSlotTypeFromContainer(sourceSlot);
             if (sourceType === 'Bag' && sourceSlot.id.includes('-type-slot')) {
@@ -2323,13 +2415,28 @@ export function initLegacyApp() {
                 if (slotContainer) {
                     const newId = e.target.value.trim();
                     const slotType = getSlotTypeFromContainer(slotContainer);
+                    const isEquipmentSlot = !!slotContainer.closest('#equipmentSlots');
+                    const newItem = getItem(newId);
+                    const restrictionReason = isEquipmentSlot && newId ? getEquipmentRestrictionReason(newItem, slotType) : '';
+
+                    if (restrictionReason) {
+                        e.target.value = '';
+                        updateSlotDisplay(slotContainer, null, slotType);
+                        if (typeof showToast === 'function') {
+                            showToast(restrictionReason);
+                        }
+                        renderCurrentAbilityPicker();
+                        renderEquipmentStats();
+                        return;
+                    }
+
                     updateSlotDisplay(slotContainer, newId, slotType);
 
                     if (slotType === 'Bag' && slotContainer.id.includes('-type-slot')) {
                         const bagKey = slotContainer.id.slice(0, 4);
                         populateBagUI(bagKey, readBagFromUI(bagKey));
                     }
-                    if (slotContainer.closest('#equipmentSlots')) {
+                    if (isEquipmentSlot) {
                         renderCurrentAbilityPicker();
                         renderEquipmentStats();
                     }
@@ -2385,7 +2492,7 @@ export function initLegacyApp() {
             const target = document.elementFromPoint(e.clientX, e.clientY)
                 ?.closest?.('#statEditor .item-slot-container');
             activePointerDrag.ghost.style.display = '';
-            setPointerDropTarget(target);
+            setPointerDropTarget(activePointerDrag.sourceSlot ? target : null);
         }, true);
 
         document.addEventListener('pointerup', (e) => {
@@ -2727,8 +2834,12 @@ export function initLegacyApp() {
                         const isEquipmentSlot = !!slotContainer.closest('#equipmentSlots');
                         if (isEquipmentSlot) {
                             // Enforce equipment compatibility for click-to-assign.
-                            if (!isItemAllowedInEquipmentSlot(newItem, slotType)) {
-                                console.info(`Item "${newItemId}" is not valid for equipment slot "${slotType}".`);
+                            const restrictionReason = getEquipmentRestrictionReason(newItem, slotType);
+                            if (restrictionReason) {
+                                console.info(`Item "${newItemId}" is not valid for equipment slot "${slotType}": ${restrictionReason}`);
+                                if (typeof showToast === 'function') {
+                                    showToast(restrictionReason);
+                                }
                                 deselectActiveSlot();
                                 return;
                             }
@@ -2779,13 +2890,17 @@ export function initLegacyApp() {
                 event.preventDefault();
                 event.dataTransfer.dropEffect = draggedItemSourceSlot ? 'move' : 'copy';
 
-                slotContainer.classList.add('drop-target-hover');
+                if (draggedItemSourceSlot) {
+                    slotContainer.classList.add('drop-target-hover');
+                }
             });
 
             document.addEventListener('dragenter', (event) => {
                 const slotContainer = event.target.closest('.item-slot-container');
                 if (!slotContainer) return;
-                slotContainer.classList.add('drop-target-hover');
+                if (draggedItemSourceSlot) {
+                    slotContainer.classList.add('drop-target-hover');
+                }
             });
 
             document.addEventListener('dragleave', (event) => {
@@ -2902,21 +3017,22 @@ export function initLegacyApp() {
                         return;
                     }
 
-                    if (!isItemAllowedInEquipmentSlot(item, slotType)) {
-                        console.info(`Item "${itemId}" is not valid for equipment slot "${slotType}"; drop ignored.`);
+                    const restrictionReason = getEquipmentRestrictionReason(item, slotType);
+                    if (restrictionReason) {
+                        console.info(`Item "${itemId}" is not valid for equipment slot "${slotType}"; drop ignored: ${restrictionReason}`);
                         if (typeof showToast === 'function') {
-                            showToast('This item cannot be equipped in the ' + slotType + ' slot.');
+                            showToast(restrictionReason);
                         }
                         return;
                     }
 
-                    // Confirm overwrite if there is an existing, different item
-                    if (!confirmOverwriteIfNeeded('equipment')) {
-                        return;
+                    if (!trySwapDraggedSource(slotContainer, dataTransfer, itemId, slotType)) {
+                        if (!confirmOverwriteIfNeeded('equipment')) {
+                            return;
+                        }
+                        updateSlotDisplay(slotContainer, itemId, slotType);
+                        clearDraggedSource(slotContainer, dataTransfer);
                     }
-
-                    updateSlotDisplay(slotContainer, itemId, slotType);
-                    clearDraggedSource(slotContainer, dataTransfer);
                     clearItemDragState();
                     renderCurrentAbilityPicker();
                     renderEquipmentStats();
@@ -2929,14 +3045,14 @@ export function initLegacyApp() {
                     slotContainer.closest('#bag2-slots') ||
                     slotContainer.closest('#bag3-slots')
                 ) {
-                    // Confirm overwrite if there is an existing, different item
-                    if (!confirmOverwriteIfNeeded('bag')) {
-                        return;
+                    if (!trySwapDraggedSource(slotContainer, dataTransfer, itemId, 'Inventory')) {
+                        if (!confirmOverwriteIfNeeded('bag')) {
+                            return;
+                        }
+                        updateSlotDisplay(slotContainer, itemId, 'Inventory');
+                        applyDraggedQuantity(slotContainer, dataTransfer);
+                        clearDraggedSource(slotContainer, dataTransfer);
                     }
-
-                    updateSlotDisplay(slotContainer, itemId, 'Inventory');
-                    applyDraggedQuantity(slotContainer, dataTransfer);
-                    clearDraggedSource(slotContainer, dataTransfer);
                     clearItemDragState();
                     return;
                 }
