@@ -4,6 +4,7 @@ import { itemDBJSON } from './database/item';
 import { effectDBJSON } from './database/effect';
 import { abilityDBJSON } from './database/ability';
 import { questDBJSON } from './database/quest';
+import { zoneDBJSON } from './database/zone';
 
 export function initLegacyApp() {
 // --- DATABASE & DATA TABLES ---
@@ -71,28 +72,6 @@ export function initLegacyApp() {
             console.error("Error parsing embedded ability JSON:", e);
         }
 
-        // ponytail: copied from the game trainer lists; move into data only if trainer editing is added.
-        const classSpellbookAbilityIds = {
-            barbarian: [
-                'abil_attack', 'abil_herostrike', 'abil_rend', 'abil_bloodrage',
-                'abil_pummel', 'abil_battleshout', 'abil_slam', 'abil_shieldwall',
-                'abil_intercept', 'abil_berserkrage', 'abil_execute', 'abil_recklessness',
-                'abil_enragedregen', 'abil_colsmash'
-            ],
-            shaman: [
-                'abil_attack', 'abil_lightbolt', 'abil_healwave', 'abil_curedisease',
-                'abil_elemshield', 'abil_manaspring', 'abil_flameshock', 'abil_healsurge',
-                'abil_curepoison', 'abil_bloodlust', 'abil_ghostwolf', 'abil_frostshock',
-                'abil_hex', 'abil_elemoath', 'abil_ancspirit', 'abil_healrain'
-            ],
-            scout: [
-                'abil_attack', 'abil_sinstrike', 'abil_slicedice', 'abil_kick',
-                'abil_pickpocket', 'abil_backstab', 'abil_picklock', 'abil_coldblood',
-                'abil_cheapshot', 'abil_evasion', 'abil_recuperate', 'abil_garrote',
-                'abil_ambush', 'abil_kidneyshot', 'abil_adrenrush'
-            ]
-        };
-
         let questDB = {};
         try {
             if (questDBJSON && questDBJSON.trim() !== '') {
@@ -102,6 +81,15 @@ export function initLegacyApp() {
             console.error("Error parsing embedded quest JSON:", e);
         }
 
+        let zoneDB = {};
+        try {
+            if (zoneDBJSON && zoneDBJSON.trim() !== '') {
+                zoneDB = JSON.parse(zoneDBJSON);
+            }
+        } catch (e) {
+            console.error("Error parsing embedded zone JSON:", e);
+        }
+
         const xpToLvl = { 1: 0, 2: 100, 3: 300, 4: 600, 5: 900, 6: 1200, 7: 1600, 8: 2000, 9: 2400, 10: 2800, 11: 3200, 12: 3700, 13: 4200, 14: 4700, 15: 5200, 16: 5700, 17: 6200, 18: 6800, 19: 7400, 20: 8000, 21: 8600, 22: 9200, 23: 9800, 24: 10400, 25: 11100, 26: 11800, 27: 12500, 28: 13200, 29: 13900, 30: 14600, 31: 15300, 32: 16000, 33: 16800, 34: 17600, 35: 18400, 36: 19200, 37: 20000, 38: 20800, 39: 21600, 40: 22400 };
         const maxGold = 50000;
         const maxMoneyCopper = maxGold * 100 * 100;
@@ -109,7 +97,7 @@ export function initLegacyApp() {
         const attributeMap = { str: 'Strength', agi: 'Agility', sta: 'Stamina', int: 'Intellect' };
 
         const filterValueSets = {
-            qualities: ['common', 'uncommon', 'rare', 'epic', 'legendary'],
+            qualities: new Set(),
             types: new Set(),
             locs: new Set(),
             mats: new Set()
@@ -183,41 +171,14 @@ export function initLegacyApp() {
             const itemType = (item.type || '').toLowerCase();
             const itemLoc = (item.loc || '').toLowerCase();
 
-            // Weapon: only weapon-type items.
             if (normalizedSlot === 'weapon') {
                 return itemType === 'weapon' ? '' : 'Slot restriction: only weapons can go in the Weapon slot.';
             }
 
-            // Jewelry / trinket slots rely on loc.
-            if (normalizedSlot === 'neck') {
-                return itemLoc === 'neck' ? '' : 'Slot restriction: this item is not for the Neck slot.';
-            }
-            if (normalizedSlot === 'ring') {
-                return itemLoc === 'ring' ? '' : 'Slot restriction: this item is not for the Ring slot.';
-            }
-            if (normalizedSlot === 'trinket') {
-                return itemLoc === 'trinket' ? '' : 'Slot restriction: this item is not for the Trinket slot.';
-            }
-
-            // Standard armor slots: require armor type plus matching loc.
-            if ([
-                'head',
-                'shoulders',
-                'back',
-                'chest',
-                'wrist',
-                'gloves',
-                'belt',
-                'legs',
-                'boots'
-            ].includes(normalizedSlot)) {
-                if (itemType !== 'armor') return 'Slot restriction: only armor can go in the ' + slotType + ' slot.';
-                if (!isArmorMaterialAllowedForCurrentClass(item)) return 'Material restriction: ' + firstToUpper(item.mat) + ' armor cannot be worn by ' + firstToUpper(getCurrentPlayerClass()) + '.';
-                return itemLoc === normalizedSlot ? '' : 'Slot restriction: this item is not for the ' + slotType + ' slot.';
-            }
-
-            // Non-equipment slots should not route here; treat as incompatible.
-            return 'This is not an equipment slot.';
+            if (itemLoc !== normalizedSlot) return 'Slot restriction: this item is not for the ' + slotType + ' slot.';
+            if (itemType !== 'armor') return 'Slot restriction: only equipment can go in the ' + slotType + ' slot.';
+            if (!isArmorMaterialAllowedForCurrentClass(item)) return 'Material restriction: ' + firstToUpper(item.mat) + ' armor cannot be worn by ' + firstToUpper(getCurrentPlayerClass()) + '.';
+            return '';
         }
 
         function isItemAllowedForCurrentClass(item) {
@@ -286,6 +247,10 @@ export function initLegacyApp() {
             return itemDB[itemId.toLowerCase()] || null;
         }
 
+        function getZoneName(zoneId) {
+            return zoneDB[zoneId]?.name || zoneId || 'N/A';
+        }
+
         function getLocalIconUrl(iconName) {
             return iconName ? `/murloc-icons/${String(iconName).toLowerCase()}.png` : '';
         }
@@ -298,6 +263,22 @@ export function initLegacyApp() {
         function clampItemQuantity(itemId, quantity) {
             if (!itemId) return 0;
             return Math.min(Math.max(parseInt(quantity, 10) || 1, 1), getItemStackSize(itemId));
+        }
+
+        function formatAbilityDescription(ability) {
+            return (ability?.desc || '')
+                .replace(/\$hpmod/g, getAbilityHPModText(ability))
+                .replace(/\$powmod/g, ability.cost || 0)
+                .replace(/\$cooldown/g, ability.cooldown || 0)
+                .replace(/\$casttime/g, ability.casttime || 0)
+                .replace(/\$target/g, ability.target || 'none');
+        }
+
+        function formatEffectDescription(effect) {
+            if (!effect) return '';
+            const prefix = effect.rounds !== 0 ? 'Use' : 'Equip';
+            const duration = effect.rounds > 0 ? ` (${effect.rounds} rounds)` : '';
+            return `<div class="text-green-300">${prefix}: ${effect.name || effect.id}${duration}</div>`;
         }
 
         function setupAppColumns() {
@@ -964,8 +945,18 @@ export function initLegacyApp() {
             return String(document.getElementById('playerClass')?.value || currentLoadedSaveData?.playerClass || '').toLowerCase();
         }
 
+        function isSpellbookAbility(ability) {
+            if (!ability) return false;
+            if (!['skill', 'spell'].includes(String(ability.type || '').toLowerCase())) return false;
+            return ability.id === 'abil_attack' || (ability.icon && ability.icon !== 'none');
+        }
+
         function getSpellbookAbilityIds(values) {
-            const ids = [...(classSpellbookAbilityIds[getCurrentPlayerClass()] || [])];
+            const playerClass = getCurrentPlayerClass();
+            const ids = Object.values(abilityDB)
+                .filter(ability => isSpellbookAbility(ability) && (ability.clas === 'default' || ability.clas === playerClass))
+                .sort((a, b) => (a.val || 0) - (b.val || 0) || (a.level || 0) - (b.level || 0) || a.id.localeCompare(b.id))
+                .map(ability => ability.id);
             (values || []).forEach(value => {
                 if (value && !ids.includes(value)) ids.push(value);
             });
@@ -992,11 +983,7 @@ export function initLegacyApp() {
             abilityIds.slice(page * pageSize, page * pageSize + pageSize).forEach(abilityId => {
                 const ability = abilityDB[abilityId] || { id: abilityId, name: abilityId };
                 const learned = selectedSet.has(abilityId);
-                const description = (ability.desc || '')
-                    .replace(/\$hpmod/g, getAbilityHPModText(ability))
-                    .replace(/\$powmod/g, ability.cost || 0)
-                    .replace(/\$cooldown/g, ability.cooldown || 0)
-                    .replace(/\$target/g, ability.target || 'none');
+                const description = formatAbilityDescription(ability);
                 const abilityIcon = getAbilityIcon(ability);
                 const icon = abilityIcon && abilityIcon !== 'none'
                     ? getLocalIconUrl(abilityIcon)
@@ -1457,75 +1444,31 @@ export function initLegacyApp() {
 
             // Block: Effects - Collect all explicit and derived effects
             const effectsToShow = [];
-            if (item.effects && item.effects.length > 0) {
-                effectsToShow.push(...item.effects);
-            }
-            // For consumables, derive the effect from the ability ID
-            if (item.type === 'consumable' && item.abil) {
-                const derivedEffectId = item.abil.replace('abil_', 'eff_');
-                if (getEffect(derivedEffectId) && !effectsToShow.some(e => e.value === derivedEffectId)) {
-                     effectsToShow.push({ value: derivedEffectId });
+            if (item.type !== 'consumable') {
+                if (item.effects && item.effects.length > 0) {
+                    effectsToShow.push(...item.effects);
+                }
+                if (item.abil) {
+                    (abilityDB[item.abil]?.effects || [])
+                        .filter(effectRef => effectRef?.value && !effectsToShow.some(e => e.value === effectRef.value))
+                        .forEach(effectRef => effectsToShow.push(effectRef));
                 }
             }
 
             if (effectsToShow.length > 0) {
                 const effectDescriptions = effectsToShow.map(effectRef => {
-                    const effect = getEffect(effectRef.value);
-                    if (!effect) return '';
-                    
-                    // A consumable is always "Use". Other items are "Equip" if passive (rounds: 0).
-                    const prefix = (item.type === 'consumable' || effect.rounds !== 0) ? 'Use' : 'Equip';
-                    const descriptions = [];
-                    let durationHandled = false;
-
-                    if (effect.stats && effect.stats.length > 0) {
-                        effect.stats.forEach(s => {
-                            const statName = attributeMap[s.stat] || s.stat.charAt(0).toUpperCase() + s.stat.slice(1);
-                            const verb = s.num > 0 ? 'Increases' : 'Decreases';
-                            descriptions.push(`${verb} ${statName} by ${Math.abs(s.num)}.`);
-                        });
-                    }
-                    if (effect.pcrit > 0) descriptions.push(`Increases melee critical strike chance by ${effect.pcrit}%.`);
-                    if (effect.spcrit > 0) descriptions.push(`Increases spell critical strike chance by ${effect.spcrit}%.`);
-                    if (effect.phit > 0) descriptions.push(`Increases melee hit chance by ${effect.phit}%.`);
-                    if (effect.sphit > 0) descriptions.push(`Increases spell hit chance by ${effect.sphit}%.`);
-                    if (effect.pdodge > 0) descriptions.push(`Increases dodge chance by ${effect.pdodge}%.`);
-                    if (effect.hpmod !== 0) {
-                        if (effect.hpmod > 0) descriptions.push(`Restores ${effect.hpmod} health per round.`);
-                        else descriptions.push(`Inflicts ${Math.abs(effect.hpmod)} damage per round.`);
-                    }
-                    if (effect.powermod !== 0) {
-                        if (effect.powermod > 0) descriptions.push(`Restores ${effect.powermod} power per round.`);
-                        else descriptions.push(`Drains ${Math.abs(effect.powermod)} power per round.`);
-                    }
-
-                    if (effect.stun) {
-                        if (effect.rounds > 0) {
-                           descriptions.push(`Stuns the target for ${effect.rounds} rounds.`);
-                           durationHandled = true;
-                        } else {
-                           descriptions.push('Stuns the target.');
-                        }
-                    }
-                    if (effect.silence) {
-                        if (effect.rounds > 0) {
-                           descriptions.push(`Silences the target for ${effect.rounds} rounds.`);
-                           durationHandled = true;
-                        } else {
-                           descriptions.push('Silences the target.');
-                        }
-                    }
-                    
-                    if (descriptions.length === 0) return '';
-                    let fullDescription = descriptions.join(' ');
-                    if (effect.rounds > 0 && !durationHandled) {
-                        fullDescription += ` Lasts for ${effect.rounds} rounds.`;
-                    }
-                    return `<div class="text-green-300">${prefix}: ${fullDescription}</div>`;
+                    return formatEffectDescription(getEffect(effectRef.value));
                 }).filter(Boolean).join('');
 
                 if (effectDescriptions) {
                     textBlocks.push(`<div class="space-y-1">${effectDescriptions}</div>`);
+                }
+            }
+
+            if (item.type === 'consumable' && item.abil) {
+                const abilityDescription = formatAbilityDescription(abilityDB[item.abil]);
+                if (abilityDescription) {
+                    textBlocks.push(`<div class="text-green-300">Use: ${abilityDescription}</div>`);
                 }
             }
 
@@ -2115,7 +2058,7 @@ export function initLegacyApp() {
 
             const heroZoneValueEl = document.getElementById('heroZoneValue');
             if (heroZoneValueEl) {
-                heroZoneValueEl.textContent = currentZone;
+                heroZoneValueEl.textContent = getZoneName(currentZone);
             }
 
             setMoneyFromCopper(saveData.playerMoney || 0);
@@ -2663,6 +2606,7 @@ export function initLegacyApp() {
             // Populate dynamic filter sets from item DB
             for (const key in itemDB) {
                 const item = itemDB[key];
+                if (item.quality) filterValueSets.qualities.add(item.quality);
                 if (item.type) filterValueSets.types.add(item.type);
                 if (item.loc && item.loc !== 'none') filterValueSets.locs.add(item.loc);
                 if (item.mat && item.mat !== 'none') filterValueSets.mats.add(item.mat);
@@ -2673,7 +2617,7 @@ export function initLegacyApp() {
             while (filterQualityEl.options.length > 1) { // Clear any pre-existing options
                 filterQualityEl.remove(1);
             }
-            filterValueSets.qualities.forEach(quality => {
+            [...filterValueSets.qualities].forEach(quality => {
                 const optionEl = document.createElement('option');
                 optionEl.value = quality;
                 optionEl.textContent = quality.charAt(0).toUpperCase() + quality.slice(1);
@@ -2723,7 +2667,7 @@ export function initLegacyApp() {
             const matSearchTerms = [];
 
             searchKeywords.forEach(keyword => {
-                if (filterValueSets.qualities.includes(keyword)) {
+                if (filterValueSets.qualities.has(keyword)) {
                     qualitySearchTerms.push(keyword);
                 } else if (filterValueSets.types.has(keyword)) {
                     typeSearchTerms.push(keyword);
