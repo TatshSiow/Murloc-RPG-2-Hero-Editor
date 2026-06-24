@@ -182,11 +182,16 @@ export function initLegacyApp() {
         }
 
         function isItemAllowedForCurrentClass(item) {
-            const itemClass = String(item?.clas || 'default').trim().toLowerCase();
-            if (!itemClass || itemClass === 'default' || itemClass === 'none') return true;
+            const itemClass = getItemRequiredClass(item);
+            if (!itemClass) return true;
 
             const playerClass = String(document.getElementById('playerClass')?.value || currentLoadedSaveData?.playerClass || '').trim().toLowerCase();
             return itemClass === playerClass;
+        }
+
+        function getItemRequiredClass(item) {
+            const itemClass = String(item?.clas || 'default').trim().toLowerCase();
+            return itemClass && itemClass !== 'default' && itemClass !== 'none' ? itemClass : '';
         }
 
         function isItemAllowedForCurrentLevel(item) {
@@ -1442,6 +1447,27 @@ export function initLegacyApp() {
                 textBlocks.push(`<div>${statsHtml}</div>`);
             }
 
+            const requiredClass = getItemRequiredClass(item);
+            if (requiredClass) {
+                const className = firstToUpper(requiredClass);
+                const classValue = isItemAllowedForCurrentClass(item)
+                    ? className
+                    : `<span class="text-red-600">${className}</span>`;
+                textBlocks.push(`<div class="text-stone-100">Class: ${classValue}</div>`);
+            }
+
+            // Block: Level Requirement
+            if (item.level > 0) {
+                if (item.type === 'trade' || item.type === 'quest') {
+                    textBlocks.push(`<div class="text-yellow-400">Item Level ${item.level}</div>`);
+                } else {
+                    const levelValue = isItemAllowedForCurrentLevel(item)
+                        ? item.level
+                        : `<span class="text-red-600">${item.level}</span>`;
+                    textBlocks.push(`<div class="text-stone-100">Requires level ${levelValue}</div>`);
+                }
+            }
+
             // Block: Effects - Collect all explicit and derived effects
             const effectsToShow = [];
             if (item.type !== 'consumable') {
@@ -1469,15 +1495,6 @@ export function initLegacyApp() {
                 const abilityDescription = formatAbilityDescription(abilityDB[item.abil]);
                 if (abilityDescription) {
                     textBlocks.push(`<div class="text-green-300">Use: ${abilityDescription}</div>`);
-                }
-            }
-
-            // Block: Level Requirement
-            if (item.level > 0) {
-                if (item.type === 'trade' || item.type === 'quest') {
-                    textBlocks.push(`<div class="text-yellow-400">Item Level ${item.level}</div>`);
-                } else {
-                    textBlocks.push(`<div class="text-stone-300">Requires Level ${item.level}</div>`);
                 }
             }
 
